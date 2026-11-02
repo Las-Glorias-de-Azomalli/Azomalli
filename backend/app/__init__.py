@@ -3,6 +3,7 @@ from flask_cors import CORS
 
 from app.config import Config
 from app.database import db
+from app.swagger import init_swagger
 
 
 def create_app():
@@ -14,10 +15,13 @@ def create_app():
 
     db.init_app(app)
 
+    # Inicializar interfaz Swagger
+    init_swagger(app)
+
     from app.blueprints.main.routes import main_bp
-    from app.blueprints.api.routes import api_bp
+    from app.blueprints.products.routes import products_bp
 
     app.register_blueprint(main_bp)
-    app.register_blueprint(api_bp, url_prefix='/api')
+    app.register_blueprint(products_bp, url_prefix='/api/products')
 
     return app
