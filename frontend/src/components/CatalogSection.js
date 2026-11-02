@@ -37,7 +37,7 @@ export function CatalogSection({
             <div className="products-grid" id="bestsellers-grid">
               {bestsellers.map((product) => (
                 <ProductCard
-                  key={`bestseller-${product.producto_id || product.id}`}
+                  key={`bestseller-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
                 />
@@ -59,7 +59,7 @@ export function CatalogSection({
             <div className="products-grid" id="seasonal-grid">
               {seasonal.map((product) => (
                 <ProductCard
-                  key={`seasonal-${product.producto_id || product.id}`}
+                  key={`seasonal-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
                 />
@@ -106,7 +106,7 @@ export function CatalogSection({
             ) : (
               filteredProducts.map((product) => (
                 <ProductCard
-                  key={`all-${product.producto_id || product.id}`}
+                  key={`all-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
                 />

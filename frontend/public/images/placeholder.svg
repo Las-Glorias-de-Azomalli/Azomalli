@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBF7EF" />
+      <stop offset="100%" stop-color="#F6E2D0" />
+    </linearGradient>
+  </defs>
+
+  <!-- Fondo suave acorde a la paleta -->
+  <rect width="400" height="300" fill="url(#bgGrad)" rx="8" />
+
+  <!-- Borde tenue -->
+  <rect x="1" y="1" width="398" height="298" fill="none" stroke="#DDCFC0" stroke-width="2" rx="8" />
+
+  <!-- Contenedor de ilustración central -->
+  <g transform="translate(200, 130)" text-anchor="middle">
+    <!-- Cesta / Hogaza de pan artesanal estilizada -->
+    <g fill="none" stroke="#9C291D" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.65">
+      <!-- Hogaza superior -->
+      <path d="M-45,10 C-45,-25 45,-25 45,10 Z" fill="#FBF7EF" />
+      <!-- Cortes del pan (scoring) -->
+      <path d="M-20,-10 C-18,-2 -15,5 -12,10" />
+      <path d="M-2,-15 C0,-7 3,2 6,10" />
+      <path d="M16,-10 C18,-3 21,4 24,10" />
+      <!-- Base de la hogaza / canastilla -->
+      <path d="M-50,10 L50,10 C45,30 -45,30 -50,10 Z" fill="#EFB587" opacity="0.4" />
+      <path d="M-50,10 L50,10 C45,30 -45,30 -50,10 Z" />
+    </g>
+
+    <!-- Espigas de trigo decorativas -->
+    <g stroke="#C66E5D" stroke-width="2" stroke-linecap="round" opacity="0.5">
+      <!-- Espiga izquierda -->
+      <path d="M-60,20 C-70,5 -65,-10 -60,-20" fill="none" />
+      <path d="M-68,-2 L-60,-8 L-65,-15" fill="none" />
+      <!-- Espiga derecha -->
+      <path d="M60,20 C70,5 65,-10 60,-20" fill="none" />
+      <path d="M68,-2 L60,-8 L65,-15" fill="none" />
+    </g>
+
+    <!-- Texto identificador neutral -->
+    <text y="58" font-family="'Inter', -apple-system, sans-serif" font-size="13" font-weight="600" fill="#79685C" letter-spacing="1.5">
+      AZOMALLI
+    </text>
+    <text y="74" font-family="'Inter', -apple-system, sans-serif" font-size="11" font-weight="400" fill="#9C291D" opacity="0.75" letter-spacing="0.8">
+      Panadería Artesanal
+    </text>
+  </g>
+</svg>

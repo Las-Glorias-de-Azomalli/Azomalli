@@ -72,10 +72,10 @@ export function CartDrawer({
             </div>
           ) : (
             items.map((item) => {
-              const itemId = item.producto_id ?? item.id;
-              const itemName = item.nombre ?? item.name;
-              const itemPrice = Number(item.precio_unitario ?? item.price ?? 0);
-              const itemImage = item.imagen_url || item.image || '/images/pan_conchas.png';
+              const itemId = item.producto_id;
+              const itemName = item.nombre;
+              const itemPrice = Number(item.precio_unitario ?? 0);
+              const itemImage = item.imagen_url || '/images/placeholder.svg';
 
               return (
                 <div key={itemId} className="cart-item" data-id={itemId}>
@@ -85,7 +85,7 @@ export function CartDrawer({
                     className="cart-item-img"
                     onError={(e) => {
                       e.currentTarget.onerror = null;
-                      e.currentTarget.src = '/images/pan_conchas.png';
+                      e.currentTarget.src = '/images/placeholder.svg';
                     }}
                   />
                   <div className="cart-item-info">

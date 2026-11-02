@@ -1,11 +1,11 @@
 import React from 'react';
 
 export function ProductCard({ product, onAddToCart }) {
-  const id = product.producto_id ?? product.id;
-  const name = product.nombre ?? product.name;
-  const description = product.descripcion ?? product.description;
-  const price = product.precio_unitario ?? product.price ?? 0;
-  const image = product.imagen_url || product.image || '/images/pan_conchas.png';
+  const id = product.producto_id;
+  const name = product.nombre;
+  const description = product.descripcion;
+  const price = product.precio_unitario ?? 0;
+  const image = product.imagen_url || '/images/placeholder.svg';
 
   // Etiqueta visual de temporada o categoría
   const tag = product.tag || (
@@ -34,7 +34,7 @@ export function ProductCard({ product, onAddToCart }) {
             onError={(e) => {
               // Fallback por si la imagen externa o URL de Cloudinary fallara
               e.currentTarget.onerror = null;
-              e.currentTarget.src = '/images/pan_conchas.png';
+              e.currentTarget.src = '/images/placeholder.svg';
             }}
           />
           <span className="product-price-badge">{formattedPrice}</span>

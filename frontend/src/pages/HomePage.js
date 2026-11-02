@@ -37,7 +37,7 @@ export function HomePage() {
 
   const handleAddToCart = (product) => {
     addToCart(product);
-    showToast(`Añadido al carrito: ${product.name}`);
+    showToast(`Añadido al carrito: ${product.nombre}`);
   };
 
   const handleCheckout = async () => {

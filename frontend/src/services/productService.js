@@ -9,7 +9,7 @@ import { API_ENDPOINTS, buildApiUrl } from '../config/api';
  * @param {Object} [filters]
  * @param {string} [filters.filter] - Tipo de filtro ('seasonal', etc.)
  * @param {string} [filters.category] - Categoría ('DULCE', 'SALADO', etc.)
- * @returns {Promise<Array>} Lista de productos normalizados
+ * @returns {Promise<Array>} Lista de productos
  */
 export async function fetchProducts({ filter, category } = {}) {
   const url = buildApiUrl(API_ENDPOINTS.PRODUCTS.LIST, {
@@ -23,19 +23,7 @@ export async function fetchProducts({ filter, category } = {}) {
   }
 
   const data = await response.json();
-  const rawList = Array.isArray(data.products) ? data.products : [];
-
-  // Mapeo seguro con nombres de PostgreSQL y fallbacks
-  return rawList.map((p) => ({
-    ...p,
-    producto_id: p.producto_id ?? p.id,
-    nombre: p.nombre ?? p.name,
-    descripcion: p.descripcion ?? p.description,
-    precio_unitario: Number(p.precio_unitario ?? p.price ?? 0),
-    imagen_url: p.imagen_url || p.image || '/images/pan_conchas.png',
-    categoria: (p.categoria || p.category || 'DULCE').toUpperCase(),
-    es_temporada: Boolean(p.es_temporada ?? p.is_seasonal)
-  }));
+  return Array.isArray(data.products) ? data.products : [];
 }
 
 /**
