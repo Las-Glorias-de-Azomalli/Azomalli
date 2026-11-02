@@ -13,9 +13,6 @@ export const API_BASE_URL = (process.env.REACT_APP_API_BASE_URL || '').replace(/
 export const API_ENDPOINTS = {
   BASE_URL: API_BASE_URL,
 
-  // Health check
-  HEALTH: `${API_BASE_URL}/`,
-
   // Catálogo de Productos
   PRODUCTS: {
     LIST: `${API_BASE_URL}/api/products`,

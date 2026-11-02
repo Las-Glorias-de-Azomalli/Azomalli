@@ -1,11 +1,10 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint, redirect
 
 main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
-def health_check():
-    return jsonify({
-        "name": "Las Glorias de Azomalli API",
-        "status": "online",
-        "version": "1.0.0"
-    })
+
+@main_bp.route('/docs')
+@main_bp.route('/apidocs')
+def docs_redirect():
+    """Redirecciona alias comunes de documentación hacia la raíz con Swagger UI."""
+    return redirect('/')
