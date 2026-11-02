@@ -28,10 +28,11 @@ Primer esqueleto funcional del proyecto de e-commerce para la panadería artesan
 
 6. **Cátalogo y Backend Flask (API REST):**
    - Tabla `Producto` en PostgreSQL gestionada con SQLAlchemy y Alembic.
-   - Backend Flask con endpoints REST:
-     - `GET /`: Health check en JSON con el estado de la API.
+   - Backend Flask modular por dominios (`products`) con endpoints REST y documentación interactiva Swagger:
+     - `GET /`: Interfaz interactiva de gestión y documentación Swagger UI.
      - `GET /api/products`: Devuelve el catálogo consultado directamente de PostgreSQL (soporta filtros por `category` y `filter=seasonal`).
-   - Dependencias fijadas en [`requirements.txt`](file:///D:/Cursos/Azomalli/requirements.txt).
+     - `GET /api/products/<id>`: Devuelve el detalle de un producto específico por su ID.
+   - Dependencias fijadas en `requirements.txt`.
 
 ---
 
