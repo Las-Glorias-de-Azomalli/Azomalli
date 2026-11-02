@@ -63,6 +63,26 @@ SWAGGER_TEMPLATE = {
                     "example": "https://res.cloudinary.com/azomalli/image/upload/v1/concha.png",
                     "description": "URL de la imagen del producto (alojada en Cloudinary o estático)"
                 },
+                "es_personalizable": {
+                    "type": "boolean",
+                    "example": False,
+                    "description": "Indica si el producto permite personalización de sabor, relleno o topping"
+                },
+                "sabor": {
+                    "type": "object",
+                    "example": None,
+                    "description": "Configuración JSON de sabor para productos personalizables"
+                },
+                "topping": {
+                    "type": "object",
+                    "example": None,
+                    "description": "Configuración JSON de topping para productos personalizables"
+                },
+                "relleno": {
+                    "type": "object",
+                    "example": None,
+                    "description": "Configuración JSON de relleno para productos personalizables"
+                },
                 "activo": {
                     "type": "boolean",
                     "example": True,
