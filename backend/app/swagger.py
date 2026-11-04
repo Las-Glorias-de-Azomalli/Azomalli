@@ -20,13 +20,87 @@ SWAGGER_TEMPLATE = {
         "http",
         "https"
     ],
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": (
+                "Autenticación basada en JWT. "
+                "Ingresa el token con el formato: **Bearer &lt;tu_jwt_token&gt;**"
+            )
+        }
+    },
     "tags": [
         {
             "name": "Catálogo de Productos",
             "description": "Endpoints para consulta, detalle y filtrado del catálogo de panes artesanales."
+        },
+        {
+            "name": "Autenticación",
+            "description": "Endpoints para registro de cuentas, inicio de sesión y gestión de sesión JWT."
         }
     ],
     "definitions": {
+        "Cuenta": {
+            "type": "object",
+            "description": "Entidad que representa la cuenta de usuario en el sistema.",
+            "properties": {
+                "cuenta_id": {
+                    "type": "integer",
+                    "example": 1,
+                    "description": "Identificador único de la cuenta"
+                },
+                "email": {
+                    "type": "string",
+                    "example": "cliente@azomalli.com",
+                    "description": "Correo electrónico registrado"
+                },
+                "telefono": {
+                    "type": "string",
+                    "example": "9211234567",
+                    "description": "Número de teléfono de contacto"
+                },
+                "rol": {
+                    "type": "string",
+                    "example": "CLIENTE",
+                    "description": "Rol asignado a la cuenta (CLIENTE, ADMINISTRADOR, etc.)"
+                },
+                "persona_id": {
+                    "type": "integer",
+                    "example": 1,
+                    "description": "ID de la persona asociada a la cuenta"
+                }
+            }
+        },
+        "AuthLoginResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Inicio de sesión exitoso"
+                },
+                "access_token": {
+                    "type": "string",
+                    "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                },
+                "cuenta": {
+                    "$ref": "#/definitions/Cuenta"
+                }
+            }
+        },
+        "AuthRegisterResponse": {
+            "type": "object",
+            "properties": {
+                "message": {
+                    "type": "string",
+                    "example": "Cuenta creada exitosamente"
+                },
+                "cuenta": {
+                    "$ref": "#/definitions/Cuenta"
+                }
+            }
+        },
         "Producto": {
             "type": "object",
             "description": "Entidad que representa un producto de panadería artesanal.",

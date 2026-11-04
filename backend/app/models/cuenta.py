@@ -33,5 +33,25 @@ class Cuenta(db.Model):
         "TokenRecuperacion", back_populates="cuenta"
     )
 
+    def set_password(self, raw_password: str):
+        """Genera el hash Bcrypt de la contraseña."""
+        from app import bcrypt
+        self.password = bcrypt.generate_password_hash(raw_password).decode('utf-8')
+
+    def check_password(self, raw_password: str) -> bool:
+        """Verifica la contraseña ingresada contra el hash almacenado."""
+        from app import bcrypt
+        return bcrypt.check_password_hash(self.password, raw_password)
+
+    def to_dict(self):
+        """Representación en diccionario (omitiendo la contraseña por seguridad)."""
+        return {
+            "cuenta_id": self.cuenta_id,
+            "email": self.email,
+            "telefono": self.telefono,
+            "rol": self.rol.value if hasattr(self.rol, "value") else str(self.rol),
+            "persona_id": self.persona_id
+        }
+
     def __repr__(self):
         return f"<Cuenta {self.cuenta_id}: {self.email}>"
