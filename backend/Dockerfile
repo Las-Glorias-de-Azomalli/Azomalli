@@ -24,5 +24,5 @@ COPY . .
 # Exponer el puerto de Flask
 EXPOSE 5000
 
-# Arrancar: ejecutar migraciones con Alembic, poblar la BD si está vacía e iniciar Flask
-CMD ["sh", "-c", "alembic upgrade head && python seed.py && flask run --host=0.0.0.0 --port=5000"]
+# Arrancar: ejecutar migraciones con Alembic, poblar la BD si está vacía e iniciar servidor WSGI Gunicorn
+CMD ["sh", "-c", "alembic upgrade head && python seed.py && gunicorn --bind 0.0.0.0:${PORT:-5000} --workers 3 --timeout 120 run:app"]

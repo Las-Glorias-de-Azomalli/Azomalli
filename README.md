@@ -178,14 +178,21 @@ La aplicación abrirá automáticamente en [http://localhost:3000](http://localh
 
 ---
 
-## 🧪 Flujo de Pruebas de la Aplicación
+## 🧪 Suite de Pruebas Automatizadas y Docker
 
-1. **Catálogo dinámico desde PostgreSQL**: Comprueba que se muestren los panes recuperados desde la tabla `Producto`, con sus precios en MXN e imágenes entregadas por Cloudinary.
-2. **Filtros por categoría**: Selecciona las pestañas `Todos`, `Dulces` o `Salados` para filtrar según el ENUM `categoria_producto`.
-3. **Sección de temporada**: Los productos con `es_temporada: true` aparecerán destacados en la sección correspondiente.
-4. **Cesta de compras (Drawer)**:
-   - Añade panes con *"Agregar al carrito"*.
-   - Comprueba la notificación flotante (*toast*) y la animación del contador en la cabecera.
-   - Abre el panel lateral, modifica cantidades (+ / -) y elimina items.
-   - Comprueba la persistencia recargando la página (`localStorage`).
-   - Finaliza el encargo para simular la confirmación del pedido.
+El proyecto cuenta con una pirámide de pruebas completa (Unitarias, Integración y End-to-End con Selenium en Docker). Para consultar la documentación completa de pruebas y comandos, revisa el archivo [**`TESTS_README.md`**](TESTS_README.md).
+
+### Comandos Rápidos de Pruebas:
+```bash
+# 1. Pruebas Unitarias Backend (Pytest - ~1 segundo)
+pytest backend/tests/test_models.py -v
+
+# 2. Pruebas Unitarias Frontend (React / Jest)
+cd frontend && npm test
+
+# 3. Pruebas de Integración Backend (con PostgreSQL)
+pytest backend/tests/ -v
+
+# 4. Pruebas End-to-End completas en navegador Chrome (Selenium + Docker)
+docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner
+```

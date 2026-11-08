@@ -1,0 +1,180 @@
+name: Azomalli CI/CD Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*.*.*'
+
+env:
+  DOCKER_IMAGE_BACKEND: ${{ secrets.DOCKERHUB_USERNAME }}/azomalli-backend
+  DOCKER_IMAGE_FRONTEND: ${{ secrets.DOCKERHUB_USERNAME }}/azomalli-frontend
+
+jobs:
+  # ═══════════════════════════════════════════════════════════════════
+  # FASES 1 A 4: INTEGRACIÓN CONTINUA (PR / VALIDACIÓN PRE-MERGE)
+  # ═══════════════════════════════════════════════════════════════════
+  ci-test-and-verify:
+    name: Verificación e Integración (CI)
+    runs-on: ubuntu-latest
+
+    # ── Fase 2: Service Container Efímero (PostgreSQL 16) ───────────
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgrespassword
+          POSTGRES_DB: azomalli_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      # ── Preparación del Entorno Python ──────────────────────────────
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Instalar Dependencias del Backend
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r backend/requirements.txt
+
+      # ── Fase 3: Preparación del Esquema con Alembic ──────────────────
+      - name: Ejecutar Migraciones de Base de Datos (Alembic)
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgrespassword@localhost:5432/azomalli_test
+          SECRET_KEY: ci_secret_key_123
+        run: |
+          cd backend
+          alembic upgrade head
+
+      # ── Fase 4: Ejecución de Pruebas Automatizadas Backend ───────────
+      - name: Ejecutar Pruebas Automatizadas con Pytest (Unitarias e Integración)
+        env:
+          DATABASE_URL: postgresql+psycopg://postgres:postgrespassword@localhost:5432/azomalli_test
+          SECRET_KEY: ci_secret_key_123
+        run: |
+          cd backend
+          pytest tests/ -v --cov=app
+
+      # ── Pruebas del Frontend ─────────────────────────────────────────
+      - name: Configurar Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package.json
+
+      - name: Instalar Dependencias del Frontend
+        run: |
+          cd frontend
+          npm install
+
+      - name: Ejecutar Pruebas Unitarias del Frontend
+        run: |
+          cd frontend
+          npm test
+
+      - name: Validar Compilación del Frontend (Build)
+        run: |
+          cd frontend
+          npm run build
+
+  # ═══════════════════════════════════════════════════════════════════
+  # FASE 5: MERGE A MAIN -> CONSTRUCCIÓN Y ETIQUETA LATEST
+  # ═══════════════════════════════════════════════════════════════════
+  cd-build-latest:
+    name: Construcción y Push :latest (Staging)
+    needs: [ci-test-and-verify]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Iniciar Sesión en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir y Publicar Backend :latest
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_BACKEND }}:latest
+
+      - name: Construir y Publicar Frontend :latest
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: ${{ env.DOCKER_IMAGE_FRONTEND }}:latest
+
+  # ═══════════════════════════════════════════════════════════════════
+  # FASE 6: CREACIÓN DE TAG -> VERSIONADO FINAL PARA PRODUCCIÓN
+  # ═══════════════════════════════════════════════════════════════════
+  cd-release-tag:
+    name: Publicación de Versión Inmutable (Producción)
+    needs: [ci-test-and-verify]
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar Código Fuente
+        uses: actions/checkout@v4
+
+      - name: Extraer Nombre del Tag
+        id: get_tag
+        run: echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
+
+      - name: Iniciar Sesión en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Construir y Publicar Backend Inmutable
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE_BACKEND }}:${{ steps.get_tag.outputs.TAG_NAME }}
+            ${{ env.DOCKER_IMAGE_BACKEND }}:latest
+
+      - name: Construir y Publicar Frontend Inmutable
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend
+          file: ./frontend/Dockerfile
+          push: true
+          tags: |
+            ${{ env.DOCKER_IMAGE_FRONTEND }}:${{ steps.get_tag.outputs.TAG_NAME }}
+            ${{ env.DOCKER_IMAGE_FRONTEND }}:latest
+

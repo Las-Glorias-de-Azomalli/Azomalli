@@ -5,4 +5,7 @@ files
 node_modules
 build
 dist
+info/
+.pytest_cache/
+.vscode/
 

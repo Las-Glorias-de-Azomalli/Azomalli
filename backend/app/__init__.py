@@ -11,9 +11,15 @@ bcrypt = Bcrypt()
 jwt = JWTManager()
 
 
-def create_app():
+def create_app(config_object=None):
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    if config_object:
+        if isinstance(config_object, dict):
+            app.config.update(config_object)
+        else:
+            app.config.from_object(config_object)
 
     # Permitir solicitudes CORS
     CORS(app)
