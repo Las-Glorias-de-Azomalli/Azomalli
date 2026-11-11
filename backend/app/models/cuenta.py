@@ -45,13 +45,17 @@ class Cuenta(db.Model):
 
     def to_dict(self):
         """Representación en diccionario (omitiendo la contraseña por seguridad)."""
-        return {
+        data = {
             "cuenta_id": self.cuenta_id,
             "email": self.email,
             "telefono": self.telefono,
             "rol": self.rol.value if hasattr(self.rol, "value") else str(self.rol),
             "persona_id": self.persona_id
         }
+        if self.persona:
+            data["nombre"] = self.persona.nombre
+            data["primer_apellido"] = self.persona.primer_apellido
+        return data
 
     def __repr__(self):
         return f"<Cuenta {self.cuenta_id}: {self.email}>"

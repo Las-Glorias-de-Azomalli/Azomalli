@@ -94,6 +94,16 @@ jobs:
           cd frontend
           npm run build
 
+      # ── Pruebas End-to-End con Playwright ─────────────────────────────
+      - name: Ejecutar Pruebas End-to-End con Playwright (Docker Compose)
+        run: |
+          docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner
+
+      - name: Limpiar Entorno E2E
+        if: always()
+        run: |
+          docker compose -f docker-compose.e2e.yml down -v
+
   # ═══════════════════════════════════════════════════════════════════
   # FASE 5: MERGE A MAIN -> CONSTRUCCIÓN Y ETIQUETA LATEST
   # ═══════════════════════════════════════════════════════════════════

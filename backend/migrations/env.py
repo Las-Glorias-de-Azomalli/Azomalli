@@ -1,5 +1,6 @@
 """Alembic env.py — integrado con la app y sus modelos."""
 
+import os
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -19,10 +20,20 @@ flask_app = create_app()
 # ── Configuración de Alembic ──────────────────────────────────────
 config = context.config
 
-# Inyectar la URL de la BD desde la config de Flask
+# Inyectar la URL de la BD desde la config de Flask o DATABASE_URL directa
+direct_url = os.getenv("DATABASE_URL")
+if direct_url:
+    if direct_url.startswith("postgresql://"):
+        direct_url = direct_url.replace("postgresql://", "postgresql+psycopg://", 1)
+    elif direct_url.startswith("postgres://"):
+        direct_url = direct_url.replace("postgres://", "postgresql+psycopg://", 1)
+    migration_url = direct_url
+else:
+    migration_url = flask_app.config["SQLALCHEMY_DATABASE_URI"]
+
 config.set_main_option(
     "sqlalchemy.url",
-    flask_app.config["SQLALCHEMY_DATABASE_URI"],
+    migration_url,
 )
 
 # Configurar logging

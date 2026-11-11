@@ -9,7 +9,7 @@ Plataforma de comercio electrónico para la panadería artesanal **"Las Glorias 
 ### Backend
 * **Python 3.12+** con **Flask 3.0** (Arquitectura REST API / Headless).
 * **Flask-CORS** para habilitar la comunicación cross-origin segura.
-* **PostgreSQL 16** como motor de base de datos relacional (con soporte de ENUMs nativos y tipos JSONB).
+* **Neon Database (PostgreSQL 16 en la nube)** como motor de base de datos relacional (con soporte de pooling vía PgBouncer, ENUMs nativos y tipos JSONB).
 * **SQLAlchemy 2.0** como ORM para el modelado de datos.
 * **Alembic** para el control de versiones y migraciones del esquema.
 * **psycopg 3** como adaptador de conexión a PostgreSQL.
@@ -22,7 +22,7 @@ Plataforma de comercio electrónico para la panadería artesanal **"Las Glorias 
 * **Custom Hooks** para gestión desacoplada del estado del carrito (`useCart`), catálogo de productos (`useProducts`) y notificaciones flotantes (`useToast`).
 
 ### Contenedorización e Infraestructura
-* **Docker & Docker Compose**: Orquestación de tres servicios (`db`, `backend`, `frontend`) con volúmenes persistentes y sincronización de código en caliente.
+* **Docker & Docker Compose**: Orquestación de servicios (`backend`, `frontend`) con variables de entorno para conexión a **Neon Database**. Para pruebas E2E automatizadas, se orquesta un contenedor efímero aislado de PostgreSQL.
 * **Cloudinary**: Distribución optimizada de imágenes del catálogo mediante URLs públicas HTTPS.
 
 ---
@@ -89,9 +89,16 @@ Para evitar tener que buscar y reemplazar rutas en múltiples componentes y hook
 
 ## 🐳 Puesta en Marcha con Docker (Recomendado)
 
-Docker Compose levanta de forma coordinada la base de datos PostgreSQL, la API en Flask (con migraciones y datos semilla automáticos) y el cliente React con recarga en caliente (*hot-reload*).
+Docker Compose levanta de forma coordinada la API en Flask (con migraciones automáticas hacia **Neon Database**) y el cliente React con recarga en caliente (*hot-reload*).
 
-### 1. Iniciar todos los servicios
+### 1. Variables de entorno
+Crea tu archivo `.env` en la raíz copiando de `.env.example` y define tus cadenas de conexión a Neon:
+```bash
+cp .env.example .env
+```
+Asegúrate de colocar tu `DATABASE_URL` (conexión directa) y/o `DATABASE_URL_POOLED` de Neon en el archivo `.env`.
+
+### 2. Iniciar todos los servicios
 Desde la raíz del proyecto ejecuta:
 
 ```bash
@@ -103,17 +110,17 @@ O en segundo plano (*modo detach*):
 docker compose up -d --build
 ```
 
-### 2. ¿Qué ocurre internamente al iniciar?
-1. **`azomalli_db`**: Levanta PostgreSQL 16 y realiza comprobaciones de salud (*healthcheck*). Los datos se guardan en el volumen `postgres_data`.
-2. **`azomalli_backend`**: Espera a que la base de datos esté lista, ejecuta automáticamente `alembic upgrade head` para crear las tablas, ejecuta `seed.py` para poblar el catálogo de productos si está vacío, e inicia el servidor Flask en `http://localhost:5000`.
-3. **`azomalli_frontend`**: Instala dependencias e inicia el servidor de desarrollo en `http://localhost:3000`.
+### 3. ¿Qué ocurre internamente al iniciar?
+1. **Conexión a Neon**: El backend se conecta de forma segura a Neon Database (en la nube) mediante SSL (`sslmode=require`).
+2. **`azomalli_backend`**: Ejecuta automáticamente `alembic upgrade head` para sincronizar las migraciones con Neon, corre `seed.py` para poblar el catálogo y la cuenta de demo si aún no existen, e inicia el servidor Flask en `http://localhost:5000`.
+3. **`azomalli_frontend`**: Inicia el servidor de desarrollo en `http://localhost:3000`.
 
-### 3. Acceso a la aplicación
+### 4. Acceso a la aplicación
 * **Frontend Web (React):** [http://localhost:3000](http://localhost:3000)
 * **API Backend (Health Check):** [http://localhost:5000/](http://localhost:5000/)
 * **Catálogo API (JSON):** [http://localhost:5000/api/products](http://localhost:5000/api/products)
 
-### 4. Comandos útiles de Docker Compose
+### 5. Comandos útiles de Docker Compose
 ```bash
 # Ver logs en tiempo real de todos los servicios
 docker compose logs -f
@@ -121,11 +128,8 @@ docker compose logs -f
 # Ver logs únicamente del backend
 docker compose logs -f backend
 
-# Detener los contenedores conservando los datos de la BD
+# Detener los contenedores (los datos persisten en la nube de Neon)
 docker compose down
-
-# Detener y eliminar volúmenes (reinicia la BD limpia desde cero)
-docker compose down -v
 ```
 
 ---
@@ -180,7 +184,7 @@ La aplicación abrirá automáticamente en [http://localhost:3000](http://localh
 
 ## 🧪 Suite de Pruebas Automatizadas y Docker
 
-El proyecto cuenta con una pirámide de pruebas completa (Unitarias, Integración y End-to-End con Selenium en Docker). Para consultar la documentación completa de pruebas y comandos, revisa el archivo [**`TESTS_README.md`**](TESTS_README.md).
+El proyecto cuenta con una pirámide de pruebas completa (Unitarias, Integración y End-to-End con Playwright en Docker). Para consultar la documentación completa de pruebas y comandos, revisa el archivo [**`TESTS_README.md`**](TESTS_README.md).
 
 ### Comandos Rápidos de Pruebas:
 ```bash
@@ -193,6 +197,6 @@ cd frontend && npm test
 # 3. Pruebas de Integración Backend (con PostgreSQL)
 pytest backend/tests/ -v
 
-# 4. Pruebas End-to-End completas en navegador Chrome (Selenium + Docker)
+# 4. Pruebas End-to-End completas en navegador Chromium (Playwright + Docker)
 docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner
 ```

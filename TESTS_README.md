@@ -30,12 +30,16 @@ Azomalli/
 │
 ├── frontend/src/__tests__/     # 🔹 Pruebas de Frontend (React / Jest + RTL)
 │   ├── ProductCard.test.js     # Componente: Render de tarjeta de pan y evento de agregar
-│   └── useCart.test.js         # Custom Hook: Lógica del carrito, subtotales y localStorage
+│   ├── useCart.test.js         # Custom Hook: Lógica del carrito, subtotales y localStorage
+│   ├── Navbar.test.js          # Componente: Navegación, botón Mi Perfil y dropdown de usuario
+│   └── LoginPage.test.js       # Pantalla: Formulario, diseño Figma, credenciales y errores
 │
-└── tests_e2e/                  # 🔹 Pruebas End-to-End (Selenium en Chrome + Docker)
-    ├── Dockerfile              # Contenedor runner con Python y Selenium
-    ├── requirements.txt        # Dependencias (pytest, selenium)
-    └── test_cart_and_catalog.py# Flujos reales de usuario en navegador
+└── tests_e2e/                  # 🔹 Pruebas End-to-End (Playwright en Chromium Headless + Docker)
+    ├── Dockerfile              # Runner oficial Playwright Python de Microsoft
+    ├── requirements.txt        # Dependencias (pytest, playwright, pytest-playwright)
+    ├── conftest.py             # Fixtures, viewport y argumentos de navegador
+    ├── test_cart_and_catalog.py# Flujos reales de catálogo, filtros y carrito
+    └── test_login.py           # Flujos de inicio de sesión, Mi Perfil en navbar y logout
 ```
 
 ---
@@ -83,12 +87,17 @@ Azomalli/
 
 ---
 
-### D. Pruebas End-to-End con Selenium (`tests_e2e/`)
-* **Objetivo:** Probar la aplicación completa de extremo a extremo simulando a un usuario real navegando en **Google Chrome**.
+### D. Pruebas End-to-End con Playwright (`tests_e2e/`)
+* **Objetivo:** Probar la aplicación web completa de extremo a extremo simulando a un usuario real en **Chromium headless** con auto-waiting nativo y mayor velocidad.
+* **Ventajas frente a Selenium:**
+  * Eliminación del contenedor independiente `selenium/standalone-chrome` (ahorro de ~2GB de RAM en el host).
+  * Auto-espera nativa de elementos (elimina la necesidad de `time.sleep` y clics forzados por JavaScript).
+  * Aislamiento hermético de contextos y mayor velocidad de ejecución.
 * **Escenarios que ejecuta:**
-  * **E2E-01:** Carga de la aplicación web, verificación de la barra de navegación y renderizado del catálogo entregado por la API de Flask.
+  * **E2E-01:** Carga de la aplicación web, verificación del encabezado y renderizado del catálogo entregado por la API de Flask.
   * **E2E-02:** Interacción reactiva con las pestañas de filtro ("Dulces" / "Salados") sin recargar la página.
   * **E2E-03:** Clic en *"Agregar al carrito"*, actualización del contador dinámico (`#cart-counter`), apertura del panel lateral (*CartDrawer*), incremento de cantidad (`+`), cálculo del nuevo subtotal y persistencia del carrito tras recargar la página (`F5`).
+  * **E2E-AUTH-01 a E2E-AUTH-06:** Renderizado fiel del diseño Figma de inicio de sesión (`15:10367`), autocompletado demo, validación de credenciales inválidas, login exitoso con cuenta semilla (`ana@example.com`), actualización reactiva del Navbar con **`Mi Perfil` y el nombre del usuario**, menú desplegable de usuario, persistencia tras recarga y cierre de sesión seguro.
 * **Ejecución:**
   ```bash
   docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner
@@ -124,16 +133,15 @@ Levanta el proyecto completo para programar con sincronización de código en ca
 ---
 
 ### 2. Entorno de Pruebas E2E (`docker-compose.e2e.yml`)
-Crea una red interna hermética e independiente para ejecutar las pruebas automatizadas de Selenium:
+Crea una red interna hermética e independiente para ejecutar las pruebas automatizadas de Playwright:
 * **Servicios coordinados:**
   1. `azomalli_e2e_db`: Base de datos temporal con healthcheck `pg_isready`.
-  2. `azomalli_e2e_backend`: API Flask servida por **Gunicorn** con migraciones automáticas (`alembic upgrade head`) y poblamiento semilla (`seed.py`).
+  2. `azomalli_e2e_backend`: API Flask servida por **Gunicorn** con migraciones automáticas (`alembic upgrade head`) y poblamiento semilla (`seed.py`), incluyendo cuenta demo.
   3. `azomalli_e2e_frontend`: Aplicación React configurada para aceptar peticiones internas sin bloqueo de host.
-  4. `azomalli_e2e_selenium`: Contenedor oficial `selenium/standalone-chrome` con servidor Xvfb.
-  5. `azomalli_e2e_runner`: Contenedor Python que ejecuta Pytest y WebDriver, apagando todo el stack al finalizar (`exit-code-from e2e_runner`).
+  4. `azomalli_e2e_runner`: Contenedor oficial de Playwright Python de Microsoft (`mcr.microsoft.com/playwright/python:v1.44.0-jammy`) que ejecuta Pytest y Chromium headless directamente, apagando todo el stack al finalizar (`exit-code-from e2e_runner`).
 * **Comandos:**
   ```bash
-  # Ejecutar suite E2E completa
+  # Ejecutar suite E2E completa con Playwright
   docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner
 
   # Limpiar contenedores y volúmenes de prueba al finalizar

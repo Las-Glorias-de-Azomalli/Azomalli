@@ -11,7 +11,7 @@ import { useProducts } from '../hooks/useProducts';
 import { useCart } from '../hooks/useCart';
 import { useToast } from '../hooks/useToast';
 
-export function HomePage() {
+export function HomePage({ onNavigate } = {}) {
   const {
     bestsellers,
     seasonal,
@@ -53,7 +53,7 @@ export function HomePage() {
 
   return (
     <div className="azomalli-app">
-      <Navbar cartCount={totalCount} onOpenCart={openCart} />
+      <Navbar cartCount={totalCount} onOpenCart={openCart} onNavigate={onNavigate} />
 
       <main>
         <Hero />

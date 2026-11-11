@@ -1,8 +1,11 @@
 """Script para poblar la base de datos con los productos iniciales si está vacía."""
+import datetime
 from app import create_app
 from app.database import db
 from app.models.producto import Producto
-from app.models.enums import CategoriaProducto
+from app.models.persona import Persona
+from app.models.cuenta import Cuenta
+from app.models.enums import CategoriaProducto, RolDeUsuario
 
 INITIAL_PRODUCTS = [
     {
@@ -110,7 +113,32 @@ def seed_database():
             db.session.commit()
             print(f"Se crearon {len(INITIAL_PRODUCTS)} productos exitosamente.")
         else:
-            print(f"La base de datos ya contiene {total} productos. Omitiendo seed.")
+            print(f"La base de datos ya contiene {total} productos. Omitiendo seed de productos.")
+
+        # Poblar cuenta demo para inicio de sesión si no existe
+        cuenta_demo = Cuenta.query.filter_by(email="ana@example.com").first()
+        if not cuenta_demo:
+            print("Poblando cuenta de demostración (ana@example.com)...")
+            persona_ana = Persona(
+                nombre="Ana",
+                primer_apellido="García",
+                fecha_registro=datetime.date.today()
+            )
+            db.session.add(persona_ana)
+            db.session.flush()
+
+            cuenta_ana = Cuenta(
+                email="ana@example.com",
+                telefono="9211234567",
+                rol=RolDeUsuario.CLIENTE,
+                persona_id=persona_ana.persona_id
+            )
+            cuenta_ana.set_password("Panaderia123!")
+            db.session.add(cuenta_ana)
+            db.session.commit()
+            print("Cuenta de demostración creada exitosamente.")
+        else:
+            print("La cuenta demo ya existe. Omitiendo seed de cuenta.")
 
 if __name__ == "__main__":
     seed_database()
