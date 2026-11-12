@@ -4,6 +4,8 @@ import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
+import { OrdersPage } from './pages/OrdersPage';
+import { OrderDetailPage } from './pages/OrderDetailPage';
 import { ProductCustomizationModal } from './components/ProductCustomizationModal';
 import { useCart } from './hooks/useCart';
 import { useToast } from './hooks/useToast';
@@ -125,8 +127,40 @@ function AppRouter() {
           />
         );
 
-      case '/':
+      case '/pedidos':
+      case '/orders':
+        return (
+          <OrdersPage
+            cartCount={totalCount}
+            onOpenCart={openCart}
+            onNavigate={navigateTo}
+          />
+        );
+
+      case '/pedidos/calendario':
+        return (
+          <OrdersPage
+            cartCount={totalCount}
+            onOpenCart={openCart}
+            onNavigate={navigateTo}
+            initialView="calendar"
+          />
+        );
+
       default:
+        if (currentPath.startsWith('/pedidos/') || currentPath.startsWith('/orders/')) {
+          const parts = currentPath.split('/');
+          const orderId = parts[2] || parts[1];
+          return (
+            <OrderDetailPage
+              orderId={orderId}
+              cartCount={totalCount}
+              onOpenCart={openCart}
+              onNavigate={navigateTo}
+            />
+          );
+        }
+
         return (
           <HomePage
             onNavigate={navigateTo}

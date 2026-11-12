@@ -30,13 +30,15 @@ Azomalli/
 │   └── test_api_orders.py      # Integración: Endpoints /api/orders, flujo efectivo y JSONB
 │
 ├── frontend/src/__tests__/     # 🔹 Pruebas de Frontend (React / Jest + RTL)
-│   ├── ProductCard.test.js     # Componente: Render de tarjeta de pan y evento de agregar
+│   ├── ProductCard.test.js     # Componente: Render de tarjeta de pan y comprobación interna al agregar al carrito
 │   ├── useCart.test.js         # Custom Hook: Lógica del carrito, subtotales y localStorage
 │   ├── Navbar.test.js          # Componente: Navegación, botón Mi Perfil y dropdown de usuario
 │   ├── LoginPage.test.js       # Pantalla: Formulario, diseño Figma, credenciales y errores
 │   ├── ProductCustomizationModal.test.js # Modal: Pop-up de personalización (Figma 25:154)
 │   ├── CartPage.test.js        # Pantalla: Vista completa de carrito (Figma 15:10487)
-│   └── CheckoutPage.test.js    # Pantalla: Calendario y confirmación de pedido (Figma 81:1413)
+│   ├── CheckoutPage.test.js    # Pantalla: Calendario y confirmación de pedido (Figma 81:1413)
+│   ├── OrdersPage.test.js      # Pantalla: Mis pedidos en Tabla (Figma 15:10586) y Calendario (Figma 81:1619)
+│   └── OrderDetailPage.test.js # Pantalla: Detalle del pedido y desglose de personalizaciones (Figma 81:1829)
 │
 └── tests_e2e/                  # 🔹 Pruebas End-to-End (Playwright en Chromium Headless + Docker)
     ├── Dockerfile              # Runner oficial Playwright Python de Microsoft
@@ -44,7 +46,7 @@ Azomalli/
     ├── conftest.py             # Fixtures, viewport y argumentos de navegador
     ├── test_cart_and_catalog.py# Flujos reales de catálogo, filtros y carrito
     ├── test_login.py           # Flujos de inicio de sesión, Mi Perfil en navbar y logout
-    └── test_order_flow.py      # Flujo completo de personalización, carrito y agendar pedido
+    └── test_order_flow.py      # Flujo completo de personalización, carrito, agendar pedido, Mis pedidos y Detalle
 ```
 
 ---
@@ -103,6 +105,10 @@ Azomalli/
   * **E2E-02:** Interacción reactiva con las pestañas de filtro ("Dulces" / "Salados") sin recargar la página.
   * **E2E-03:** Clic en *"Agregar al carrito"*, actualización del contador dinámico (`#cart-counter`), apertura del panel lateral (*CartDrawer*), incremento de cantidad (`+`), cálculo del nuevo subtotal y persistencia del carrito tras recargar la página (`F5`).
   * **E2E-AUTH-01 a E2E-AUTH-06:** Renderizado fiel del diseño Figma de inicio de sesión (`15:10367`), autocompletado demo, validación de credenciales inválidas, login exitoso con cuenta semilla (`ana@example.com`), actualización reactiva del Navbar con **`Mi Perfil` y el nombre del usuario**, menú desplegable de usuario, persistencia tras recarga y cierre de sesión seguro.
+  * **E2E-ORDER-01:** Comprobación interna al agregar al carrito: eliminación del botón redundante "Personalizar" y apertura automática del modal solo en productos personalizables (Figma `25:154`).
+  * **E2E-ORDER-02 y 03:** Pantalla de Carrito (Figma `15:10487`), agendado con selección de fecha en calendario y confirmación con pago en efectivo (Figma `81:1413`).
+  * **E2E-ORDER-04:** Pantalla de Mis pedidos (Figma `15:10586`), tabla de pedidos, filtros de estado ("Todos" / "En curso") y conmutación reactiva a vista Calendario con entregas mensuales (Figma `81:1619`).
+  * **E2E-ORDER-05:** Detalle del pedido (Figma `81:1829`), banner de estado de preparación, datos de cuenta/entrega/pago, desglose de opciones conservadas por producto y total general.
 * **Ejecución:**
   ```bash
   docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner

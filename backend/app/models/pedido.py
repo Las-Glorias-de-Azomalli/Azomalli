@@ -37,15 +37,30 @@ class Pedido(db.Model):
 
     def to_dict(self):
         """Serializa el pedido y sus líneas de detalle a JSON."""
+        cliente_nombre = None
+        cliente_email = None
+        if self.cuenta:
+            cliente_email = self.cuenta.email
+            if self.cuenta.persona:
+                cliente_nombre = f"{self.cuenta.persona.nombre} {self.cuenta.persona.primer_apellido or ''}".strip()
+            if not cliente_nombre:
+                cliente_nombre = self.cuenta.email
+
+        total_piezas = sum(d.cantidad for d in self.detalles) if self.detalles else 0
+
         return {
             "pedido_id": self.pedido_id,
+            "codigo_pedido": f"AG-{self.pedido_id:04d}",
             "cuenta_id": self.cuenta_id,
+            "cliente_nombre": cliente_nombre,
+            "cliente_email": cliente_email,
             "fecha_pedido": self.fecha_pedido.isoformat() if self.fecha_pedido else None,
             "fecha_entrega": self.fecha_entrega.isoformat() if self.fecha_entrega else None,
             "lugar_entrega": self.lugar_entrega,
             "estado": self.estado.value if hasattr(self.estado, "value") else str(self.estado),
             "pago": self.pago.value if hasattr(self.pago, "value") else str(self.pago),
             "monto_total": float(self.monto_total) if self.monto_total is not None else 0.0,
+            "total_piezas": total_piezas,
             "detalles": [d.to_dict() for d in self.detalles] if self.detalles else [],
         }
 

@@ -185,11 +185,18 @@ def create_order(cuenta_id, items, fecha_entrega, lugar_entrega="Panadería · r
     return nuevo_pedido.to_dict()
 
 
-def get_orders_by_user(cuenta_id):
+def get_orders_by_user(cuenta_id, estado=None):
     """Retorna el listado de pedidos realizados por una cuenta."""
+    query = Pedido.query.filter_by(cuenta_id=int(cuenta_id))
+    if estado:
+        estado_clean = str(estado).strip().upper()
+        if estado_clean in ("CURSO", "EN CURSO", "PENDIENTE", "EN_CURSO"):
+            query = query.filter(Pedido.estado == EstadoPedido.PENDIENTE)
+        elif hasattr(EstadoPedido, estado_clean):
+            query = query.filter(Pedido.estado == EstadoPedido[estado_clean])
     pedidos = (
-        Pedido.query.filter_by(cuenta_id=int(cuenta_id))
-        .order_by(Pedido.pedido_id.desc())
+        query
+        .order_by(Pedido.fecha_entrega.desc(), Pedido.pedido_id.desc())
         .all()
     )
     return [p.to_dict() for p in pedidos]

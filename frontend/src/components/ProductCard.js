@@ -23,6 +23,19 @@ export function ProductCard({ product, onAddToCart, onCustomize }) {
     currency: 'MXN'
   }).format(price);
 
+  const handleAddToCartClick = () => {
+    // Comprobación interna: si es personalizable se abre la personalización, de lo contrario se agrega directamente
+    if (product.es_personalizable) {
+      if (onCustomize) {
+        onCustomize(product);
+      }
+    } else {
+      if (onAddToCart) {
+        onAddToCart(product);
+      }
+    }
+  };
+
   return (
     <div className="product-card-wrapper">
       <article className="product-card-container" data-id={id}>
@@ -63,22 +76,11 @@ export function ProductCard({ product, onAddToCart, onCustomize }) {
           {tag && <span className="product-tag">{tag}</span>}
 
           <div className="product-card-actions-wrapper">
-            {product.es_personalizable && (
-              <button
-                className="btn-customize-pan"
-                type="button"
-                aria-label={`Personalizar ${name}`}
-                onClick={() => onCustomize && onCustomize(product)}
-              >
-                Personalizar
-              </button>
-            )}
-
             <button
               className="btn-add-cart"
               type="button"
               aria-label={`Agregar ${name} al carrito`}
-              onClick={() => onAddToCart && onAddToCart(product)}
+              onClick={handleAddToCartClick}
             >
               <span className="btn-text">Agregar al carrito</span>
               <svg

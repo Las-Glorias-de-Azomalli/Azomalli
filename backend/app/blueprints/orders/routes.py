@@ -114,6 +114,11 @@ def list_orders():
       - Pedidos
     security:
       - BearerAuth: []
+    parameters:
+      - in: query
+        name: estado
+        type: string
+        description: Filtro opcional por estado (PENDIENTE, ENTREGADO, CANCELADO, EN_CURSO)
     responses:
       200:
         description: Lista de pedidos del usuario.
@@ -121,7 +126,8 @@ def list_orders():
         description: No autorizado.
     """
     current_cuenta_id = get_jwt_identity()
-    orders = get_orders_by_user(current_cuenta_id)
+    estado = request.args.get('estado')
+    orders = get_orders_by_user(current_cuenta_id, estado=estado)
     return jsonify({"success": True, "orders": orders}), 200
 
 

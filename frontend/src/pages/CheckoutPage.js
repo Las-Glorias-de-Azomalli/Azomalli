@@ -199,13 +199,23 @@ export function CheckoutPage({
                 <span className="success-total">${totalAmount.toFixed(2)} MXN</span>
               </div>
             </div>
-            <button
-              type="button"
-              className="btn-primary-azomalli"
-              onClick={() => onNavigate && onNavigate('/')}
-            >
-              Volver al inicio
-            </button>
+            <div className="success-actions-row">
+              <button
+                type="button"
+                className="btn-primary-azomalli"
+                id="btn-view-my-orders"
+                onClick={() => onNavigate && onNavigate('/pedidos')}
+              >
+                Ver mis pedidos
+              </button>
+              <button
+                type="button"
+                className="btn-secondary-azomalli"
+                onClick={() => onNavigate && onNavigate('/')}
+              >
+                Volver al inicio
+              </button>
+            </div>
           </div>
         </main>
       </div>

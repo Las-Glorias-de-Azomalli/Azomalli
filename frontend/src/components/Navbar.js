@@ -137,7 +137,7 @@ export function Navbar({ cartCount = 0, onOpenCart, onNavigate }) {
             id="nav-pedidos-link"
             onClick={(e) => {
               e.preventDefault();
-              scrollToSection('seccion-mas-vendidos');
+              navigateTo('/pedidos');
             }}
           >
             Mis pedidos
@@ -234,9 +234,10 @@ export function Navbar({ cartCount = 0, onOpenCart, onNavigate }) {
                         <button
                           type="button"
                           className="dropdown-item-btn"
+                          id="nav-dropdown-pedidos-btn"
                           onClick={() => {
                             setDropdownOpen(false);
-                            scrollToSection('seccion-mas-vendidos');
+                            navigateTo('/pedidos');
                           }}
                         >
                           Mis pedidos

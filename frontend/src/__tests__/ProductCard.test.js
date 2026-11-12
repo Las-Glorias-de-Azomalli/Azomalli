@@ -54,5 +54,35 @@ describe('Componente ProductCard', () => {
 
     expect(screen.getByText('DE TEMPORADA')).toBeInTheDocument();
   });
+
+  test('Producto personalizable NO muestra botón de Personalizar y al hacer clic en Agregar al carrito ejecuta onCustomize', () => {
+    const customizableProduct = {
+      ...mockProduct,
+      es_personalizable: true,
+    };
+    const handleAddToCart = jest.fn();
+    const handleCustomize = jest.fn();
+
+    render(
+      <ProductCard
+        product={customizableProduct}
+        onAddToCart={handleAddToCart}
+        onCustomize={handleCustomize}
+      />
+    );
+
+    // No debe existir el botón "Personalizar"
+    expect(screen.queryByRole('button', { name: /Personalizar/i })).not.toBeInTheDocument();
+
+    // Al hacer clic en "Agregar al carrito", debe llamar a onCustomize debido a la comprobación interna
+    const addButton = screen.getByRole('button', {
+      name: /Agregar Concha Tradicional de Vainilla al carrito/i,
+    });
+    fireEvent.click(addButton);
+
+    expect(handleCustomize).toHaveBeenCalledTimes(1);
+    expect(handleCustomize).toHaveBeenCalledWith(customizableProduct);
+    expect(handleAddToCart).not.toHaveBeenCalled();
+  });
 });
 

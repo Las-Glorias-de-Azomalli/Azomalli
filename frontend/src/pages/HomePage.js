@@ -59,8 +59,12 @@ export function HomePage({
   };
 
   const handleAddToCart = (product) => {
-    addToCart(product);
-    showToast(`Añadido al carrito: ${product.nombre}`);
+    if (product?.es_personalizable) {
+      handleOpenCustomize(product);
+    } else {
+      addToCart(product);
+      showToast(`Añadido al carrito: ${product.nombre}`);
+    }
   };
 
   const handleDrawerCheckout = () => {

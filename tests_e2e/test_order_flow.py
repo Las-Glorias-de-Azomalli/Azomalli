@@ -6,16 +6,19 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://frontend:3000")
 
 
 def test_e2e_product_customization_modal_opens_and_adds_to_cart(page: Page):
-    """E2E-ORDER-01: Abrir pop-up de personalización Figma (25:154), elegir opciones y agregar al carrito."""
+    """E2E-ORDER-01: Al dar clic en 'Agregar al carrito' en producto personalizable abre el modal (Figma 25:154), y el botón Personalizar ya no existe."""
     page.goto(FRONTEND_URL)
 
     # Esperar a que el catálogo cargue
     expect(page.locator(".brand-name")).to_contain_text("Las Glorias de Azomalli")
 
-    # Localizar el botón de Personalizar del primer pan personalizable
-    btn_customize = page.locator(".btn-customize-pan").first
-    expect(btn_customize).to_be_visible(timeout=15000)
-    btn_customize.click()
+    # Verificar que el botón .btn-customize-pan fue eliminado de la pantalla
+    expect(page.locator(".btn-customize-pan")).to_have_count(0)
+
+    # Clic en 'Agregar al carrito' de un producto personalizable (Pay id=1 o Concha id=2)
+    btn_add = page.locator(".product-card-container[data-id='1'] .btn-add-cart, .product-card-container[data-id='2'] .btn-add-cart, .btn-add-cart").first
+    expect(btn_add).to_be_visible(timeout=15000)
+    btn_add.click()
 
     # Verificar apertura del modal de personalización
     modal = page.locator("#customization-modal-panel")
@@ -93,3 +96,68 @@ def test_e2e_checkout_schedule_calendar_and_cash_payment(page: Page):
     confirm_btn.click()
     expect(page.locator(".success-title")).to_contain_text("¡Gracias por tu compra!", timeout=15000)
     expect(page.locator(".success-desc")).to_contain_text("GLO-")
+
+
+def test_e2e_orders_page_table_and_calendar_views(page: Page):
+    """E2E-ORDER-04: Mis pedidos (Figma 15:10586) y vista Calendario (Figma 81:1619)."""
+    # 1. Navegar a Mis pedidos
+    page.goto(f"{FRONTEND_URL}/pedidos")
+
+    # 2. Validar encabezado de la página (Figma 15:10586)
+    expect(page.locator(".orders-eyebrow")).to_have_text("DE NUESTRAS MANOS A TU MESA")
+    expect(page.locator(".orders-headline")).to_have_text("Mis pedidos")
+    expect(page.locator(".btn-explore-catalog")).to_be_visible()
+
+    # 3. Validar filtros y controles de vista
+    expect(page.locator("#filter-all-orders-btn")).to_be_visible()
+    expect(page.locator("#filter-active-orders-btn")).to_be_visible()
+    expect(page.locator("#view-table-btn")).to_be_visible()
+    expect(page.locator("#view-calendar-btn")).to_be_visible()
+
+    # 4. Validar vista Tabla activa por defecto
+    expect(page.locator("#orders-table-wrapper")).to_be_visible()
+    expect(page.locator(".orders-table-header-row")).to_contain_text("Pedido")
+    expect(page.locator(".orders-table-header-row")).to_contain_text("Total")
+    expect(page.locator(".order-code-text").first).to_be_visible()
+    expect(page.locator(".btn-view-order-detail").first).to_be_visible()
+
+    # 5. Cambiar a vista Calendario (Figma 81:1619)
+    page.locator("#view-calendar-btn").click()
+    expect(page.locator("#orders-calendar-wrapper")).to_be_visible()
+    expect(page.locator(".calendar-criteria-text")).to_have_text("Por fecha de entrega")
+    expect(page.locator(".calendar-weekdays-bar")).to_contain_text("Lun")
+    expect(page.locator(".calendar-weekdays-bar")).to_contain_text("Dom")
+    expect(page.locator(".orders-view-caption")).to_contain_text("Vista Calendario activa")
+
+
+def test_e2e_order_detail_view(page: Page):
+    """E2E-ORDER-05: Detalle del pedido (Figma 81:1829), información general y personalizaciones."""
+    page.goto(f"{FRONTEND_URL}/pedidos/1048")
+
+    # 1. Validar botón de retorno y encabezado
+    expect(page.locator("#back-to-orders-btn")).to_be_visible()
+    expect(page.locator(".order-detail-eyebrow")).to_have_text("CADA DETALLE, HECHO CON CARIÑO")
+    expect(page.locator(".order-detail-title")).to_contain_text("Pedido AG-1048")
+
+    # 2. Validar banner de estado de preparación
+    expect(page.locator(".order-status-banner-card")).to_be_visible()
+    expect(page.locator(".registered-delivery-label")).to_have_text("ENTREGA REGISTRADA")
+
+    # 3. Validar tarjeta de información general
+    expect(page.locator(".order-info-title")).to_have_text("Información del pedido")
+    expect(page.locator(".info-cell-label", has_text="Cuenta del comprador")).to_be_visible()
+    expect(page.locator(".info-cell-label", has_text="Lugar de entrega")).to_be_visible()
+
+    # 4. Validar sección de productos "Lo que elegiste" y desglose
+    expect(page.locator(".items-section-title")).to_have_text("Lo que elegiste")
+    expect(page.locator(".item-customization-box").first).to_be_visible()
+
+    # 5. Validar tarjeta de cierre y total general
+    expect(page.locator(".closing-quote-title")).to_have_text("Un pequeño gusto. Un gran momento.")
+    expect(page.locator(".closing-total-card")).to_contain_text("Total general")
+    expect(page.locator(".grand-val")).to_contain_text("$296.00")
+
+    # 6. Probar botón de volver a Mis pedidos
+    page.locator("#back-to-orders-btn").click()
+    page.wait_for_url(f"{FRONTEND_URL}/pedidos", timeout=10000)
+    expect(page.locator(".orders-headline")).to_have_text("Mis pedidos")

@@ -45,7 +45,7 @@ export async function createOrder(orderData, token = null) {
  * @param {string} [token]
  * @returns {Promise<Array>} Lista de pedidos
  */
-export async function fetchUserOrders(token = null) {
+export async function fetchUserOrders(token = null, status = null) {
   const authToken = token || localStorage.getItem('azomalli_token');
   const headers = {
     'Content-Type': 'application/json',
@@ -55,7 +55,10 @@ export async function fetchUserOrders(token = null) {
     headers['Authorization'] = `Bearer ${authToken}`;
   }
 
-  const response = await fetch(API_ENDPOINTS.ORDERS.CREATE, {
+  const endpoint = API_ENDPOINTS.ORDERS.LIST || API_ENDPOINTS.ORDERS.CREATE;
+  const url = status ? `${endpoint}?estado=${encodeURIComponent(status)}` : endpoint;
+
+  const response = await fetch(url, {
     method: 'GET',
     headers
   });

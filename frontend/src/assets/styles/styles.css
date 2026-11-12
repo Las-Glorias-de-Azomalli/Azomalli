@@ -3593,3 +3593,1089 @@ cart-drawer,
     gap: 12px;
   }
 }
+
+/* ==========================================================================
+   MÓDULO DE PEDIDOS Y CALENDARIO (FIGMA 15:10586, 81:1619, 81:1829)
+   ========================================================================== */
+
+/* ── Encabezado y contenedor general ── */
+.orders-main-wrapper {
+  padding: 48px 80px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.orders-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+}
+
+.orders-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.orders-headline {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  color: var(--color-primary);
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.orders-lead {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+.btn-explore-catalog {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  height: 48px;
+  padding: 0 22px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 6px;
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-explore-catalog:hover {
+  background-color: var(--color-peach-soft);
+  border-color: var(--color-primary);
+}
+
+/* ── Filtros y controles de vista ── */
+.orders-controls-section {
+  margin-top: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.orders-filters-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.orders-pill-group {
+  display: inline-flex;
+  background-color: var(--color-peach-soft);
+  border-radius: 6px;
+  padding: 4px;
+  gap: 6px;
+}
+
+.orders-pill-btn {
+  padding: 10px 16px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  color: var(--color-text-muted);
+  background: transparent;
+  cursor: pointer;
+  border: none;
+  transition: var(--transition);
+}
+
+.orders-pill-btn.is-active {
+  background-color: #FFFDF8;
+  color: var(--color-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 3px rgba(60, 40, 33, 0.08);
+}
+
+.orders-view-caption {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ── Badges de estado ── */
+.status-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 10px;
+  border-radius: 100px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+}
+
+.status-badge-preparing {
+  background-color: var(--color-peach-soft);
+  color: var(--color-primary);
+}
+
+.status-badge-delivered {
+  background-color: #EAF0E6;
+  color: #4A6650;
+}
+
+.status-badge-cancelled {
+  background-color: #FEE2E2;
+  color: #991B1B;
+}
+
+/* ── Vista Tabla (Figma 15:10586) ── */
+.orders-table-card {
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-top: 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.orders-table-header-row {
+  display: flex;
+  background-color: var(--color-peach-soft);
+  padding: 16px 24px;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.orders-table-row {
+  display: flex;
+  padding: 18px 24px;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--color-border-beige);
+  background-color: #FFFDF8;
+  transition: background-color 0.2s ease;
+}
+
+.orders-table-row:last-child {
+  border-bottom: none;
+}
+
+.orders-table-row:hover {
+  background-color: #FAF4EB;
+}
+
+.col-header, .col-cell {
+  display: flex;
+  align-items: center;
+}
+
+.col-id {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.order-code-text {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.col-date {
+  width: 140px;
+  flex-shrink: 0;
+}
+
+.order-date-cell {
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.col-place {
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.order-place-cell {
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.col-status {
+  width: 130px;
+  flex-shrink: 0;
+}
+
+.col-payment {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.order-payment-cell {
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.col-total {
+  width: 110px;
+  flex-shrink: 0;
+}
+
+.order-total-cell {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.col-action {
+  width: 120px;
+  flex-shrink: 0;
+}
+
+.btn-view-order-detail {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 6px;
+  color: var(--color-primary);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-view-order-detail:hover {
+  background-color: var(--color-peach-soft);
+  border-color: var(--color-primary);
+}
+
+.orders-empty-state {
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+/* ── Vista Calendario (Figma 81:1619) ── */
+.orders-calendar-container {
+  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.calendar-panel-card {
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.calendar-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+}
+
+.calendar-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.calendar-current-month {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.calendar-criteria-text {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.calendar-month-arrows {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-calendar-arrow {
+  width: 36px;
+  height: 36px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-calendar-arrow:hover {
+  background-color: var(--color-peach-soft);
+}
+
+.calendar-weekdays-bar {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  background-color: var(--color-peach-soft);
+  border-top: 1px solid var(--color-border-beige);
+  border-bottom: 1px solid var(--color-border-beige);
+}
+
+.weekday-header-cell {
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.calendar-month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+}
+
+.calendar-cell {
+  min-height: 140px;
+  padding: 10px;
+  border-right: 1px solid var(--color-border-beige);
+  border-bottom: 1px solid var(--color-border-beige);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background-color: #FFFDF8;
+}
+
+.calendar-cell:nth-child(7n) {
+  border-right: none;
+}
+
+.calendar-cell.cell-overflow-month {
+  background-color: #F3EEE7;
+}
+
+.cell-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cell-day-num {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.cell-overflow-month .cell-day-num {
+  color: var(--color-text-muted);
+}
+
+.today-badge-text {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Tarjeta dentro del día en el calendario */
+.order-day-card {
+  border-radius: 6px;
+  padding: 10px;
+  border: 1px solid var(--color-border-beige);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-family: var(--font-sans);
+  box-shadow: 0 1px 3px rgba(60, 40, 33, 0.05);
+}
+
+.order-day-card.order-card-in-progress {
+  background-color: var(--color-peach-soft);
+}
+
+.order-day-card.order-card-completed {
+  background-color: #FFFDF8;
+}
+
+.order-day-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.day-order-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.day-order-details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.day-order-amount-pieces {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.day-order-meta {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.day-order-link-detail {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: underline;
+  background: none;
+  border: none;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.calendar-footer-summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 24px;
+  border-top: 1px solid var(--color-border-beige);
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.calendar-currency-stat {
+  font-size: 11px;
+}
+
+/* ── Historial complementario ── */
+.complementary-history-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.complementary-title {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--color-primary);
+}
+
+.complementary-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.complementary-order-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow-sm);
+}
+
+.comp-ref-block {
+  width: 150px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.comp-order-code {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.comp-order-pieces {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.comp-dates-block {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.comp-delivery-date {
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.comp-creation-date {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.comp-status-block {
+  width: 120px;
+}
+
+.comp-payment-block {
+  width: 120px;
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.comp-amount-block {
+  width: 110px;
+}
+
+.comp-amount-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.complementary-disclaimer {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.5;
+}
+
+/* ── Pantalla Detalle del Pedido (Figma 81:1829) ── */
+.order-detail-main {
+  padding: 36px 80px 48px;
+  max-width: 1440px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.order-detail-container {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.btn-back-to-orders {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-primary);
+  font-weight: 500;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: fit-content;
+  transition: var(--transition);
+}
+
+.btn-back-to-orders:hover {
+  text-decoration: underline;
+}
+
+.order-detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 32px;
+}
+
+.order-detail-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-primary);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.order-detail-title {
+  font-family: var(--font-serif);
+  font-size: 40px;
+  color: var(--color-primary);
+  line-height: 1.15;
+  margin-bottom: 8px;
+}
+
+.order-detail-subtitle {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* Banner de preparación / estado */
+.order-status-banner-card {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 24px;
+  background-color: var(--color-peach-soft);
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+}
+
+.chef-icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 100px;
+  background-color: #FFFDF8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.status-banner-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.status-banner-headline {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+
+.status-banner-caption {
+  font-size: 13px;
+  color: var(--color-text-dark);
+}
+
+.status-banner-date-box {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  text-align: right;
+}
+
+.registered-delivery-label {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  letter-spacing: 0.05em;
+}
+
+.registered-delivery-date {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Tarjeta información del pedido */
+.order-info-card {
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  box-shadow: var(--shadow-sm);
+}
+
+.order-info-title {
+  font-family: var(--font-serif);
+  font-size: 25px;
+  color: var(--color-primary);
+}
+
+.order-info-grid-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 40px;
+}
+
+.info-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.info-cell-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.info-cell-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.info-cell-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.info-card-separator {
+  height: 1px;
+  background-color: var(--color-border-beige);
+  width: 100%;
+}
+
+/* Lo que elegiste / Productos */
+.order-items-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.items-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-bottom: 8px;
+}
+
+.items-section-title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  color: var(--color-primary);
+}
+
+.items-section-subtitle {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.items-table-header {
+  display: flex;
+  padding: 16px 0 12px;
+  gap: 20px;
+  border-bottom: 1px solid var(--color-border-beige);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.col-prod {
+  flex: 1;
+}
+
+.col-qty {
+  width: 100px;
+  text-align: center;
+}
+
+.col-price {
+  width: 130px;
+  text-align: right;
+}
+
+.col-subtotal {
+  width: 130px;
+  text-align: right;
+}
+
+.items-table-body {
+  display: flex;
+  flex-direction: column;
+}
+
+.order-item-card {
+  padding: 24px 0;
+  border-bottom: 1px solid var(--color-border-beige);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.item-main-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.item-identity-cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.item-photo {
+  width: 108px;
+  height: 96px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: var(--color-peach-soft);
+  flex-shrink: 0;
+}
+
+.item-text-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.item-name {
+  font-family: var(--font-serif);
+  font-size: 26px;
+  color: var(--color-primary);
+}
+
+.item-tag-text {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.item-breakdown-text {
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.item-qty-cell {
+  width: 100px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--color-text-dark);
+}
+
+.item-price-cell {
+  width: 130px;
+  text-align: right;
+  font-size: 14px;
+  color: var(--color-text-dark);
+}
+
+.item-subtotal-cell {
+  width: 130px;
+  text-align: right;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+/* Personalización del renglón */
+.item-customization-box {
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.custom-options-row {
+  display: flex;
+  gap: 24px;
+}
+
+.custom-opt-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  flex: 1;
+}
+
+.opt-label {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.opt-val {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-dark);
+}
+
+.custom-notes-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notes-val-text {
+  font-size: 13px;
+  color: var(--color-text-dark);
+  line-height: 1.65;
+}
+
+/* Cierre del pedido */
+.order-closing-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 48px;
+  align-items: flex-start;
+}
+
+.closing-quote-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 8px 0;
+}
+
+.closing-quote-title {
+  font-family: var(--font-serif);
+  font-size: 27px;
+  color: var(--color-primary);
+}
+
+.closing-quote-desc {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  line-height: 1.65;
+  max-width: 690px;
+}
+
+.closing-total-card {
+  width: 400px;
+  background-color: var(--color-peach-soft);
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.total-calc-line {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.total-calc-line .calc-val {
+  color: var(--color-text-dark);
+  font-size: 14px;
+}
+
+.total-card-separator {
+  height: 1px;
+  background-color: var(--color-border-beige);
+  width: 100%;
+}
+
+.total-grand-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.grand-title {
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.grand-val {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--color-primary);
+}
+
+.currency-pill {
+  font-size: 11px;
+}
+
+/* Footers para pedidos */
+.orders-page-footer,
+.order-detail-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 78px;
+  padding: 0 80px;
+  background-color: var(--color-peach-soft);
+  margin-top: 48px;
+}
+
+.orders-page-footer .footer-title,
+.order-detail-footer .footer-title {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--color-primary);
+}
+
+.orders-page-footer .footer-credits,
+.order-detail-footer .footer-credits {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .orders-main-wrapper,
+  .order-detail-main {
+    padding: 32px 24px;
+  }
+
+  .orders-page-footer,
+  .order-detail-footer {
+    padding: 0 24px;
+  }
+
+  .orders-table-card {
+    overflow-x: auto;
+  }
+
+  .orders-table-header-row,
+  .orders-table-row {
+    min-width: 800px;
+  }
+
+  .order-info-grid-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .order-closing-row {
+    flex-direction: column;
+    gap: 24px;
+  }
+
+  .closing-total-card {
+    width: 100%;
+  }
+
+  .calendar-panel-card {
+    overflow-x: auto;
+  }
+
+  .calendar-weekdays-bar,
+  .calendar-month-grid {
+    min-width: 650px;
+  }
+}
