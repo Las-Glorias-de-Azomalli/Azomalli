@@ -7,7 +7,8 @@ export function CatalogSection({
   filteredProducts,
   activeCategory,
   onSelectCategory,
-  onAddToCart
+  onAddToCart,
+  onCustomize
 }) {
   // Categorías que reflejan el ENUM (DULCE / SALADO) más la opción de Todos
   const categories = ['Todos', 'Dulces', 'Salados'];
@@ -40,6 +41,7 @@ export function CatalogSection({
                   key={`bestseller-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
+                  onCustomize={onCustomize}
                 />
               ))}
             </div>
@@ -62,6 +64,7 @@ export function CatalogSection({
                   key={`seasonal-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
+                  onCustomize={onCustomize}
                 />
               ))}
             </div>
@@ -109,6 +112,7 @@ export function CatalogSection({
                   key={`all-${product.producto_id}`}
                   product={product}
                   onAddToCart={onAddToCart}
+                  onCustomize={onCustomize}
                 />
               ))
             )}

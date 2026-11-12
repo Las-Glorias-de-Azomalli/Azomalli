@@ -24,22 +24,27 @@ Las pruebas están organizadas en tres niveles independientes para garantizar ve
 Azomalli/
 ├── backend/tests/              # 🔹 Pruebas de Backend (Python / Pytest)
 │   ├── conftest.py             # Configuración, fixtures y rollback de base de datos
-│   ├── test_models.py          # Unitarias: Enums, Hashing Bcrypt, Cuenta y Producto
+│   ├── test_models.py          # Unitarias: Enums, Hashing Bcrypt, Cuenta, Producto, Pedido y DetallePedido
 │   ├── test_api_products.py    # Integración: Endpoints /api/products y filtros
-│   └── test_api_auth.py        # Integración: Flujo de registro, login y tokens JWT
+│   ├── test_api_auth.py        # Integración: Flujo de registro, login y tokens JWT
+│   └── test_api_orders.py      # Integración: Endpoints /api/orders, flujo efectivo y JSONB
 │
 ├── frontend/src/__tests__/     # 🔹 Pruebas de Frontend (React / Jest + RTL)
 │   ├── ProductCard.test.js     # Componente: Render de tarjeta de pan y evento de agregar
 │   ├── useCart.test.js         # Custom Hook: Lógica del carrito, subtotales y localStorage
 │   ├── Navbar.test.js          # Componente: Navegación, botón Mi Perfil y dropdown de usuario
-│   └── LoginPage.test.js       # Pantalla: Formulario, diseño Figma, credenciales y errores
+│   ├── LoginPage.test.js       # Pantalla: Formulario, diseño Figma, credenciales y errores
+│   ├── ProductCustomizationModal.test.js # Modal: Pop-up de personalización (Figma 25:154)
+│   ├── CartPage.test.js        # Pantalla: Vista completa de carrito (Figma 15:10487)
+│   └── CheckoutPage.test.js    # Pantalla: Calendario y confirmación de pedido (Figma 81:1413)
 │
 └── tests_e2e/                  # 🔹 Pruebas End-to-End (Playwright en Chromium Headless + Docker)
     ├── Dockerfile              # Runner oficial Playwright Python de Microsoft
     ├── requirements.txt        # Dependencias (pytest, playwright, pytest-playwright)
     ├── conftest.py             # Fixtures, viewport y argumentos de navegador
     ├── test_cart_and_catalog.py# Flujos reales de catálogo, filtros y carrito
-    └── test_login.py           # Flujos de inicio de sesión, Mi Perfil en navbar y logout
+    ├── test_login.py           # Flujos de inicio de sesión, Mi Perfil en navbar y logout
+    └── test_order_flow.py      # Flujo completo de personalización, carrito y agendar pedido
 ```
 
 ---

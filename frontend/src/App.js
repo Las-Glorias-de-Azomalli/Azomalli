@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider } from './context/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
+import { CartPage } from './pages/CartPage';
+import { CheckoutPage } from './pages/CheckoutPage';
+import { ProductCustomizationModal } from './components/ProductCustomizationModal';
 import { useCart } from './hooks/useCart';
 import { useToast } from './hooks/useToast';
 import { CartDrawer } from './components/CartDrawer';
@@ -20,6 +23,7 @@ function AppRouter() {
     isOpen: isCartOpen,
     openCart,
     closeCart,
+    addToCart,
     updateQuantity,
     removeItem,
     totalCount,
@@ -28,6 +32,9 @@ function AppRouter() {
   } = useCart();
 
   const { toasts, showToast, removeToast } = useToast();
+
+  const [editingItem, setEditingItem] = useState(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const handleLocationChange = () => {
@@ -46,43 +53,127 @@ function AppRouter() {
     }
   };
 
-  const handleCheckout = async () => {
-    try {
-      const result = await checkout();
-      if (result && result.success) {
-        showToast(result.message || '¡Pedido realizado con éxito!', 'success', 5000);
-      }
-    } catch {
-      showToast('Ocurrió un error al procesar el pedido', 'error');
+  const handleDrawerCheckout = () => {
+    closeCart();
+    navigateTo('/cart');
+  };
+
+  const handleEditCustomization = (item) => {
+    setEditingItem(item);
+    setIsEditModalOpen(true);
+  };
+
+  const handleSaveEditedCustomization = (product, customization) => {
+    addToCart(product, customization);
+    showToast(`Personalización actualizada: ${product.nombre}`);
+    setIsEditModalOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleCompleteOrder = async (orderMetadata) => {
+    const result = await checkout(orderMetadata);
+    return result;
+  };
+
+  const renderCurrentPage = () => {
+    switch (currentPath) {
+      case '/login':
+        return (
+          <>
+            <LoginPage
+              cartCount={totalCount}
+              onOpenCart={openCart}
+              onNavigate={navigateTo}
+              onShowToast={showToast}
+            />
+            <CartDrawer
+              isOpen={isCartOpen}
+              onClose={closeCart}
+              items={cart}
+              onUpdateQuantity={updateQuantity}
+              onRemoveItem={removeItem}
+              totalAmount={totalAmount}
+              onCheckout={handleDrawerCheckout}
+            />
+          </>
+        );
+
+      case '/cart':
+        return (
+          <CartPage
+            cart={cart}
+            totalCount={totalCount}
+            totalAmount={totalAmount}
+            onUpdateQuantity={updateQuantity}
+            onRemoveItem={removeItem}
+            onEditCustomization={handleEditCustomization}
+            onOpenCart={openCart}
+            onNavigate={navigateTo}
+          />
+        );
+
+      case '/checkout':
+        return (
+          <CheckoutPage
+            cart={cart}
+            totalCount={totalCount}
+            totalAmount={totalAmount}
+            onOpenCart={openCart}
+            onNavigate={navigateTo}
+            onCompleteOrder={handleCompleteOrder}
+            onShowToast={showToast}
+          />
+        );
+
+      case '/':
+      default:
+        return (
+          <HomePage
+            onNavigate={navigateTo}
+            cart={cart}
+            isCartOpen={isCartOpen}
+            openCart={openCart}
+            closeCart={closeCart}
+            addToCart={addToCart}
+            updateQuantity={updateQuantity}
+            removeItem={removeItem}
+            totalCount={totalCount}
+            totalAmount={totalAmount}
+            toasts={toasts}
+            showToast={showToast}
+            removeToast={removeToast}
+          />
+        );
     }
   };
 
-  const isLogin = currentPath === '/login';
-
   return (
     <>
-      {isLogin ? (
-        <>
-          <LoginPage
-            cartCount={totalCount}
-            onOpenCart={openCart}
-            onNavigate={navigateTo}
-            onShowToast={showToast}
-          />
-          <CartDrawer
-            isOpen={isCartOpen}
-            onClose={closeCart}
-            items={cart}
-            onUpdateQuantity={updateQuantity}
-            onRemoveItem={removeItem}
-            totalAmount={totalAmount}
-            onCheckout={handleCheckout}
-          />
-          <Toast toasts={toasts} onRemove={removeToast} />
-        </>
-      ) : (
-        <HomePage onNavigate={navigateTo} />
+      {renderCurrentPage()}
+
+      {/* Modal para editar personalizaciones desde la vista de carrito */}
+      {editingItem && (
+        <ProductCustomizationModal
+          isOpen={isEditModalOpen}
+          onClose={() => {
+            setIsEditModalOpen(false);
+            setEditingItem(null);
+          }}
+          product={{
+            producto_id: editingItem.producto_id,
+            nombre: editingItem.nombre,
+            descripcion: editingItem.descripcion || 'Producto artesanal Las Glorias de Azomalli',
+            precio_unitario: editingItem.precio_unitario,
+            imagen_url: editingItem.imagen_url,
+            categoria: editingItem.categoria,
+            es_personalizable: true
+          }}
+          initialCustomization={editingItem}
+          onSave={handleSaveEditedCustomization}
+        />
       )}
+
+      <Toast toasts={toasts} onRemove={removeToast} />
     </>
   );
 }

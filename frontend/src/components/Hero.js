@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function Hero({ onExploreClick }) {
+export function Hero({ onExploreClick, onViewCart }) {
   const handleScrollToCatalog = (e) => {
     e.preventDefault();
     if (onExploreClick) {
@@ -41,6 +41,16 @@ export function Hero({ onExploreClick }) {
             >
               <span>Explorar catálogo</span>
             </a>
+            {onViewCart && (
+              <button
+                type="button"
+                className="btn-hero-cart-link"
+                id="hero-view-cart-btn"
+                onClick={onViewCart}
+              >
+                Ver carrito
+              </button>
+            )}
           </div>
         </div>
 

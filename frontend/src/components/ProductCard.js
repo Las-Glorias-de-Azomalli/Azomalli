@@ -1,6 +1,6 @@
 import React from 'react';
 
-export function ProductCard({ product, onAddToCart }) {
+export function ProductCard({ product, onAddToCart, onCustomize }) {
   const id = product.producto_id;
   const name = product.nombre;
   const description = product.descripcion;
@@ -62,28 +62,41 @@ export function ProductCard({ product, onAddToCart }) {
           <p className="product-desc">{description}</p>
           {tag && <span className="product-tag">{tag}</span>}
 
-          <button
-            className="btn-add-cart"
-            type="button"
-            aria-label={`Agregar ${name} al carrito`}
-            onClick={() => onAddToCart && onAddToCart(product)}
-          >
-            <span className="btn-text">Agregar al carrito</span>
-            <svg
-              className="icon-svg"
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
+          <div className="product-card-actions-wrapper">
+            {product.es_personalizable && (
+              <button
+                className="btn-customize-pan"
+                type="button"
+                aria-label={`Personalizar ${name}`}
+                onClick={() => onCustomize && onCustomize(product)}
+              >
+                Personalizar
+              </button>
+            )}
+
+            <button
+              className="btn-add-cart"
+              type="button"
+              aria-label={`Agregar ${name} al carrito`}
+              onClick={() => onAddToCart && onAddToCart(product)}
             >
-              <line x1="7" y1="17" x2="17" y2="7"></line>
-              <polyline points="7 7 17 7 17 17"></polyline>
-            </svg>
-          </button>
+              <span className="btn-text">Agregar al carrito</span>
+              <svg
+                className="icon-svg"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <line x1="7" y1="17" x2="17" y2="7"></line>
+                <polyline points="7 7 17 7 17 17"></polyline>
+              </svg>
+            </button>
+          </div>
         </div>
       </article>
     </div>

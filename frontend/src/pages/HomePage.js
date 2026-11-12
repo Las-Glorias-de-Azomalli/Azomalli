@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Navbar } from '../components/Navbar';
 import { Hero } from '../components/Hero';
 import { BrandBanner } from '../components/BrandBanner';
@@ -6,12 +6,25 @@ import { CatalogSection } from '../components/CatalogSection';
 import { CartDrawer } from '../components/CartDrawer';
 import { Toast } from '../components/Toast';
 import { Footer } from '../components/Footer';
+import { ProductCustomizationModal } from '../components/ProductCustomizationModal';
 
 import { useProducts } from '../hooks/useProducts';
-import { useCart } from '../hooks/useCart';
-import { useToast } from '../hooks/useToast';
 
-export function HomePage({ onNavigate } = {}) {
+export function HomePage({
+  onNavigate,
+  cart = [],
+  isCartOpen = false,
+  openCart = () => {},
+  closeCart = () => {},
+  addToCart = () => {},
+  updateQuantity = () => {},
+  removeItem = () => {},
+  totalCount = 0,
+  totalAmount = 0,
+  toasts = [],
+  showToast = () => {},
+  removeToast = () => {}
+}) {
   const {
     bestsellers,
     seasonal,
@@ -20,34 +33,40 @@ export function HomePage({ onNavigate } = {}) {
     setActiveCategory
   } = useProducts();
 
-  const {
-    cart,
-    isOpen: isCartOpen,
-    openCart,
-    closeCart,
-    addToCart,
-    updateQuantity,
-    removeItem,
-    totalCount,
-    totalAmount,
-    checkout
-  } = useCart();
+  const [isCustomizeModalOpen, setIsCustomizeModalOpen] = useState(false);
+  const [selectedProductForCustomization, setSelectedProductForCustomization] = useState(null);
+  const [initialCustomization, setInitialCustomization] = useState(null);
 
-  const { toasts, showToast, removeToast } = useToast();
+  const handleOpenCustomize = (product, existingItem = null) => {
+    setSelectedProductForCustomization(product);
+    setInitialCustomization(existingItem);
+    setIsCustomizeModalOpen(true);
+  };
+
+  const handleCloseCustomize = () => {
+    setIsCustomizeModalOpen(false);
+    setSelectedProductForCustomization(null);
+    setInitialCustomization(null);
+  };
+
+  const handleSaveCustomization = (product, customization) => {
+    addToCart(product, customization);
+    showToast(
+      customization?.cartItemId
+        ? `Personalización actualizada: ${product.nombre}`
+        : `Añadido al carrito: ${product.nombre}`
+    );
+  };
 
   const handleAddToCart = (product) => {
     addToCart(product);
     showToast(`Añadido al carrito: ${product.nombre}`);
   };
 
-  const handleCheckout = async () => {
-    try {
-      const result = await checkout();
-      if (result && result.success) {
-        showToast(result.message || '¡Pedido realizado con éxito!', 'success', 5000);
-      }
-    } catch {
-      showToast('Ocurrió un error al procesar el pedido', 'error');
+  const handleDrawerCheckout = () => {
+    closeCart();
+    if (onNavigate) {
+      onNavigate('/cart');
     }
   };
 
@@ -56,7 +75,10 @@ export function HomePage({ onNavigate } = {}) {
       <Navbar cartCount={totalCount} onOpenCart={openCart} onNavigate={onNavigate} />
 
       <main>
-        <Hero />
+        <Hero
+          onViewCart={() => onNavigate && onNavigate('/cart')}
+          onOpenCart={openCart}
+        />
         <BrandBanner />
         <CatalogSection
           bestsellers={bestsellers}
@@ -65,6 +87,7 @@ export function HomePage({ onNavigate } = {}) {
           activeCategory={activeCategory}
           onSelectCategory={setActiveCategory}
           onAddToCart={handleAddToCart}
+          onCustomize={handleOpenCustomize}
         />
       </main>
 
@@ -77,7 +100,15 @@ export function HomePage({ onNavigate } = {}) {
         onUpdateQuantity={updateQuantity}
         onRemoveItem={removeItem}
         totalAmount={totalAmount}
-        onCheckout={handleCheckout}
+        onCheckout={handleDrawerCheckout}
+      />
+
+      <ProductCustomizationModal
+        isOpen={isCustomizeModalOpen}
+        onClose={handleCloseCustomize}
+        product={selectedProductForCustomization}
+        initialCustomization={initialCustomization}
+        onSave={handleSaveCustomization}
       />
 
       <Toast toasts={toasts} onRemove={removeToast} />

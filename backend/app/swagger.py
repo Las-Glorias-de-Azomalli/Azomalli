@@ -39,6 +39,10 @@ SWAGGER_TEMPLATE = {
         {
             "name": "Autenticación",
             "description": "Endpoints para registro de cuentas, inicio de sesión y gestión de sesión JWT."
+        },
+        {
+            "name": "Pedidos",
+            "description": "Endpoints para creación y consulta de pedidos y detalles de encargo."
         }
     ],
     "definitions": {

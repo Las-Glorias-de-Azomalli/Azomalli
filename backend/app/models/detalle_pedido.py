@@ -34,6 +34,21 @@ class DetallePedido(db.Model):
     pedido = db.relationship("Pedido", back_populates="detalles")
     producto = db.relationship("Producto", back_populates="detalles")
 
+    def to_dict(self):
+        """Serializa el detalle de pedido a un diccionario JSON."""
+        return {
+            "detalle_pedido_id": self.detalle_pedido_id,
+            "pedido_id": self.Pedido_pedido_id,
+            "producto_id": self.Producto_producto_id,
+            "producto_nombre": self.producto.nombre if self.producto else None,
+            "cantidad": self.cantidad,
+            "precio_unitario": float(self.precio_unitario) if self.precio_unitario is not None else 0.0,
+            "sabor": self.sabor,
+            "topping": self.topping,
+            "relleno": self.relleno,
+            "notas": self.notas,
+        }
+
     def __repr__(self):
         return (
             f"<DetallePedido {self.detalle_pedido_id} — "

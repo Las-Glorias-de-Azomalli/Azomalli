@@ -28,29 +28,84 @@ export function useCart() {
   const openCart = useCallback(() => setIsOpen(true), []);
   const closeCart = useCallback(() => setIsOpen(false), []);
 
-  const addToCart = useCallback((product) => {
+  const addToCart = useCallback((product, customization = null) => {
     const prodId = product.producto_id;
     const prodName = product.nombre;
     const prodPrice = Number(product.precio_unitario ?? 0);
     const prodImage = product.imagen_url || '/images/placeholder.svg';
+    const quantity = customization?.quantity ? Number(customization.quantity) : 1;
 
     setCart((prevCart) => {
-      const existing = prevCart.find((item) => item.producto_id === prodId);
-      if (existing) {
-        return prevCart.map((item) =>
-          item.producto_id === prodId
-            ? { ...item, quantity: item.quantity + 1 }
+      // 1. Edición de un item específico en el carrito
+      if (customization?.cartItemId) {
+        return prevCart.map((item) => {
+          if (item.cartItemId === customization.cartItemId) {
+            return {
+              ...item,
+              quantity: quantity,
+              precio_unitario: Number(customization.precio_unitario ?? item.precio_unitario),
+              sabor: customization.sabor !== undefined ? customization.sabor : item.sabor,
+              topping: customization.topping !== undefined ? customization.topping : item.topping,
+              relleno: customization.relleno !== undefined ? customization.relleno : item.relleno,
+              notas: customization.notas !== undefined ? customization.notas : item.notas,
+              categoria: product.categoria || item.categoria
+            };
+          }
+          return item;
+        });
+      }
+
+      // 2. Nuevo item con personalización
+      const hasCustomization = Boolean(
+        customization &&
+        (customization.sabor || customization.topping || customization.relleno || customization.notas)
+      );
+
+      if (hasCustomization) {
+        const uniqueId = `item-${prodId}-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        return [
+          ...prevCart,
+          {
+            cartItemId: uniqueId,
+            producto_id: prodId,
+            nombre: prodName,
+            precio_unitario: Number(customization.precio_unitario ?? prodPrice),
+            imagen_url: prodImage,
+            categoria: product.categoria,
+            quantity,
+            es_personalizable: true,
+            sabor: customization.sabor || null,
+            topping: customization.topping || null,
+            relleno: customization.relleno || null,
+            notas: customization.notas || null
+          }
+        ];
+      }
+
+      // 3. Item estándar sin personalizaciones
+      const existingIndex = prevCart.findIndex(
+        (item) => item.producto_id === prodId && !item.sabor && !item.topping && !item.relleno && !item.notas
+      );
+
+      if (existingIndex > -1) {
+        return prevCart.map((item, idx) =>
+          idx === existingIndex
+            ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       }
+
+      const defaultUniqueId = `item-${prodId}-${Date.now()}`;
       return [
         ...prevCart,
         {
+          cartItemId: defaultUniqueId,
           producto_id: prodId,
           nombre: prodName,
           precio_unitario: prodPrice,
           imagen_url: prodImage,
-          quantity: 1
+          categoria: product.categoria,
+          quantity
         }
       ];
     });
@@ -60,7 +115,7 @@ export function useCart() {
     setCart((prevCart) => {
       return prevCart
         .map((item) => {
-          if (item.producto_id === id) {
+          if (item.cartItemId === id || item.producto_id === id) {
             const newQty = item.quantity + change;
             return newQty > 0 ? { ...item, quantity: newQty } : null;
           }
@@ -71,7 +126,7 @@ export function useCart() {
   }, []);
 
   const removeItem = useCallback((id) => {
-    setCart((prevCart) => prevCart.filter((item) => item.producto_id !== id));
+    setCart((prevCart) => prevCart.filter((item) => item.cartItemId !== id && item.producto_id !== id));
   }, []);
 
   const clearCart = useCallback(() => {
@@ -84,15 +139,26 @@ export function useCart() {
     return sum + itemPrice * item.quantity;
   }, 0);
 
-  const checkout = useCallback(async () => {
+  const checkout = useCallback(async (orderMetadata = {}) => {
+    const formattedItems = cart.map((item) => ({
+      producto_id: item.producto_id,
+      cantidad: item.quantity,
+      precio_unitario: item.precio_unitario,
+      sabor: item.sabor,
+      topping: item.topping,
+      relleno: item.relleno,
+      notas: item.notas
+    }));
+
     const orderData = {
-      items: cart,
-      user: localStorage.getItem('azomalli_user')
-        ? JSON.parse(localStorage.getItem('azomalli_user')).name
-        : 'Invitado'
+      items: formattedItems,
+      fecha_entrega: orderMetadata.fecha_entrega,
+      lugar_entrega: orderMetadata.lugar_entrega || 'Panadería · recogida sin costo',
+      pago: 'EFECTIVO'
     };
 
-    const result = await createOrder(orderData);
+    const token = orderMetadata.token || localStorage.getItem('azomalli_token');
+    const result = await createOrder(orderData, token);
     clearCart();
     closeCart();
     return result;

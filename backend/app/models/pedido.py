@@ -33,7 +33,21 @@ class Pedido(db.Model):
 
     # Relaciones
     cuenta = db.relationship("Cuenta", back_populates="pedidos")
-    detalles = db.relationship("DetallePedido", back_populates="pedido")
+    detalles = db.relationship("DetallePedido", back_populates="pedido", cascade="all, delete-orphan")
+
+    def to_dict(self):
+        """Serializa el pedido y sus líneas de detalle a JSON."""
+        return {
+            "pedido_id": self.pedido_id,
+            "cuenta_id": self.cuenta_id,
+            "fecha_pedido": self.fecha_pedido.isoformat() if self.fecha_pedido else None,
+            "fecha_entrega": self.fecha_entrega.isoformat() if self.fecha_entrega else None,
+            "lugar_entrega": self.lugar_entrega,
+            "estado": self.estado.value if hasattr(self.estado, "value") else str(self.estado),
+            "pago": self.pago.value if hasattr(self.pago, "value") else str(self.pago),
+            "monto_total": float(self.monto_total) if self.monto_total is not None else 0.0,
+            "detalles": [d.to_dict() for d in self.detalles] if self.detalles else [],
+        }
 
     def __repr__(self):
         return f"<Pedido {self.pedido_id} — {self.estado}>"

@@ -2,6 +2,7 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from app.database import db
 from app.services import register_account, authenticate_user
 from app.models.cuenta import Cuenta
 
@@ -142,7 +143,7 @@ def profile():
     current_cuenta_id = get_jwt_identity()
     claims = get_jwt()
 
-    cuenta = Cuenta.query.get(int(current_cuenta_id))
+    cuenta = db.session.get(Cuenta, int(current_cuenta_id))
     if not cuenta:
         return jsonify({"error": "Usuario no encontrado"}), 404
 
