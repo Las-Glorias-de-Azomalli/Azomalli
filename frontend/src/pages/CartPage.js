@@ -232,7 +232,7 @@ export function CartPage({
               </div>
 
               <p className="summary-disclaimer">
-                Importes en pesos mexicanos (MXN). Precios de demostración; impuestos incluidos.
+                Importes en pesos mexicanos (MXN). Impuestos incluidos.
               </p>
 
               <button
@@ -266,14 +266,14 @@ export function CartPage({
               <h3 className="closing-headline">Un pequeño gusto. Un gran momento.</h3>
               <p className="closing-subline">Tu selección se conserva en tu cuenta mientras decides qué compartir.</p>
             </div>
-            <span className="closing-tag">Compra de demostración</span>
+            <span className="closing-tag">Panadería artesanal</span>
           </div>
         </div>
       </main>
 
       <footer className="cart-page-footer">
         <span className="footer-title">De nuestras manos a tu mesa.</span>
-        <span className="footer-credits">Las Glorias de Azomalli · Datos de demostración · MXN</span>
+        <span className="footer-credits">Las Glorias de Azomalli · MXN</span>
       </footer>
     </div>
   );

@@ -112,4 +112,31 @@ describe('Pantalla OrderDetailPage (Figma 81:1829)', () => {
     expect(screen.getAllByText('$296.00').length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText('MXN')).toBeInTheDocument();
   });
+
+  test('Redirige a /login y no muestra detalle si el usuario no está autenticado', () => {
+    jest.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false
+    });
+
+    const handleNavigate = jest.fn();
+    render(<OrderDetailPage orderId={1048} onNavigate={handleNavigate} />);
+
+    expect(handleNavigate).toHaveBeenCalledWith('/login');
+    expect(screen.queryByText('Pedido AG-1048')).not.toBeInTheDocument();
+  });
+
+  test('Muestra estado no encontrado cuando la API falla o no existe el pedido', async () => {
+    jest.spyOn(OrderServiceModule, 'fetchOrderById').mockRejectedValue(new Error('Pedido no encontrado en backend'));
+
+    render(<OrderDetailPage orderId={9999} />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Pedido no encontrado')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Pedido no encontrado en backend')).toBeInTheDocument();
+    expect(screen.queryByText('AG-1048')).not.toBeInTheDocument();
+  });
 });

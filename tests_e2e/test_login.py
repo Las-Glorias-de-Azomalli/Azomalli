@@ -25,18 +25,17 @@ def test_login_page_renders_design_elements(page: Page):
     expect(page.locator("#login-password")).to_be_visible()
     expect(page.locator("#login-remember")).to_be_attached()
     expect(page.locator("#login-submit-btn")).to_be_visible()
-    expect(page.locator(".demo-account-hint")).to_contain_text("Cuenta de demostración")
 
     # 4. Pie de página
     expect(page.locator(".footer-bar-headline")).to_have_text("De nuestras manos a tu mesa.")
 
 
-def test_login_demo_hint_autofills_credentials(page: Page):
-    """E2E-AUTH-02: El botón de cuenta de demostración autocompleta credenciales válidas."""
+def test_login_valid_credentials_input(page: Page):
+    """E2E-AUTH-02: El usuario puede ingresar credenciales válidas en los campos de login."""
     page.goto(f"{FRONTEND_URL}/login")
 
-    # Clic en "Cuenta de demostración"
-    page.locator(".demo-account-hint").click()
+    page.locator("#login-email").fill("ana@example.com")
+    page.locator("#login-password").fill("Panaderia123!")
 
     expect(page.locator("#login-email")).to_have_value("ana@example.com")
     expect(page.locator("#login-password")).to_have_value("Panaderia123!")

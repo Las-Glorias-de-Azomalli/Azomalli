@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { CartPage } from './pages/CartPage';
@@ -34,6 +34,7 @@ function AppRouter() {
   } = useCart();
 
   const { toasts, showToast, removeToast } = useToast();
+  const { isAuthenticated } = useAuth();
 
   const [editingItem, setEditingItem] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -129,6 +130,16 @@ function AppRouter() {
 
       case '/pedidos':
       case '/orders':
+        if (!isAuthenticated) {
+          return (
+            <LoginPage
+              cartCount={totalCount}
+              onOpenCart={openCart}
+              onNavigate={navigateTo}
+              onShowToast={showToast}
+            />
+          );
+        }
         return (
           <OrdersPage
             cartCount={totalCount}
@@ -138,6 +149,16 @@ function AppRouter() {
         );
 
       case '/pedidos/calendario':
+        if (!isAuthenticated) {
+          return (
+            <LoginPage
+              cartCount={totalCount}
+              onOpenCart={openCart}
+              onNavigate={navigateTo}
+              onShowToast={showToast}
+            />
+          );
+        }
         return (
           <OrdersPage
             cartCount={totalCount}
@@ -149,6 +170,16 @@ function AppRouter() {
 
       default:
         if (currentPath.startsWith('/pedidos/') || currentPath.startsWith('/orders/')) {
+          if (!isAuthenticated) {
+            return (
+              <LoginPage
+                cartCount={totalCount}
+                onOpenCart={openCart}
+                onNavigate={navigateTo}
+                onShowToast={showToast}
+              />
+            );
+          }
           const parts = currentPath.split('/');
           const orderId = parts[2] || parts[1];
           return (

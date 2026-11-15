@@ -21,12 +21,6 @@ export function LoginPage({ cartCount = 0, onOpenCart, onNavigate, onShowToast }
     }
   };
 
-  const handleFillDemo = () => {
-    setEmail('ana@example.com');
-    setPassword('Panaderia123!');
-    setErrorMessage('');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrorMessage('');
@@ -151,14 +145,6 @@ export function LoginPage({ cartCount = 0, onOpenCart, onNavigate, onShowToast }
                     <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                   </svg>
                 </div>
-                <button
-                  type="button"
-                  className="demo-account-hint"
-                  onClick={handleFillDemo}
-                  title="Haz clic para autocompletar credenciales demo"
-                >
-                  Cuenta de demostración
-                </button>
               </div>
 
               {/* Campo Contraseña (Figma 15:10401) */}
@@ -315,7 +301,7 @@ export function LoginPage({ cartCount = 0, onOpenCart, onNavigate, onShowToast }
       <footer className="login-footer-bar">
         <span className="footer-bar-headline">De nuestras manos a tu mesa.</span>
         <span className="footer-bar-subtext">
-          Las Glorias de Azomalli · Datos de demostración · MXN
+          Las Glorias de Azomalli · MXN
         </span>
       </footer>
     </div>

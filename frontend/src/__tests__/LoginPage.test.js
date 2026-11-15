@@ -36,19 +36,7 @@ describe('Componente LoginPage', () => {
     expect(screen.getByLabelText(/Recordarme/i)).toBeInTheDocument();
     expect(document.getElementById('login-submit-btn')).toBeInTheDocument();
     expect(screen.getByText(/Usamos tu correo únicamente/i)).toBeInTheDocument();
-  });
-
-  test('permite autocompletar credenciales con el botón de cuenta de demostración', () => {
-    render(<LoginPage onNavigate={jest.fn()} onShowToast={jest.fn()} />);
-
-    const demoBtn = screen.getByText('Cuenta de demostración');
-    fireEvent.click(demoBtn);
-
-    const emailInput = screen.getByLabelText(/Correo electrónico/i);
-    const passwordInput = screen.getByLabelText(/^Contraseña/i);
-
-    expect(emailInput.value).toBe('ana@example.com');
-    expect(passwordInput.value).toBe('Panaderia123!');
+    expect(screen.queryByText('Cuenta de demostración')).not.toBeInTheDocument();
   });
 
   test('muestra mensaje de error si las credenciales son incorrectas', async () => {

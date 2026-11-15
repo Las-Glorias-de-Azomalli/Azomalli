@@ -3742,9 +3742,21 @@ cart-drawer,
   background-color: #FFFDF8;
   border: 1px solid var(--color-border-beige);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   margin-top: 24px;
   box-shadow: var(--shadow-sm);
+}
+
+.orders-table-card::-webkit-scrollbar,
+.calendar-panel-card::-webkit-scrollbar {
+  height: 6px;
+}
+
+.orders-table-card::-webkit-scrollbar-thumb,
+.calendar-panel-card::-webkit-scrollbar-thumb {
+  background-color: var(--color-border-beige);
+  border-radius: 3px;
 }
 
 .orders-table-header-row {
@@ -4635,7 +4647,142 @@ cart-drawer,
   color: var(--color-text-muted);
 }
 
-/* Responsive adjustments */
+/* ── Loading and Skeleton States (Mejora UX Detalle de Pedido) ── */
+.order-detail-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 24px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+  gap: 12px;
+}
+
+.order-detail-spinner,
+.orders-spinner {
+  width: 44px;
+  height: 44px;
+  border: 3px solid var(--color-peach-soft);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: azomalli-spin 0.8s cubic-bezier(0.5, 0.1, 0.5, 0.9) infinite;
+}
+
+.order-detail-loading-text {
+  font-family: var(--font-serif);
+  font-size: 20px;
+  color: var(--color-primary);
+  margin: 0;
+  font-weight: 600;
+}
+
+.order-detail-loading-subtext {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.orders-loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  gap: 14px;
+  color: var(--color-text-muted);
+}
+
+.orders-loading-state p {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-dark);
+}
+
+.order-detail-skeleton-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  opacity: 0.65;
+  pointer-events: none;
+  margin-top: 8px;
+}
+
+.skeleton-line {
+  background: linear-gradient(90deg, #FAF4EB 25%, #F0E4D2 50%, #FAF4EB 75%);
+  background-size: 200% 100%;
+  animation: azomalli-shimmer 1.5s infinite;
+  border-radius: 4px;
+}
+
+.skeleton-back-btn {
+  width: 140px;
+  height: 18px;
+}
+
+.skeleton-title {
+  width: 280px;
+  height: 38px;
+}
+
+.skeleton-card {
+  background: linear-gradient(90deg, #FAF4EB 25%, #F0E4D2 50%, #FAF4EB 75%);
+  background-size: 200% 100%;
+  animation: azomalli-shimmer 1.5s infinite;
+  border-radius: 8px;
+  border: 1px solid var(--color-border-beige);
+}
+
+.skeleton-banner {
+  height: 80px;
+}
+
+.skeleton-info {
+  height: 140px;
+}
+
+.skeleton-items {
+  height: 200px;
+}
+
+@keyframes azomalli-spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes azomalli-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.not-found-state {
+  padding: 48px 24px;
+  background-color: #FFFDF8;
+  border: 1px solid var(--color-border-beige);
+  border-radius: 8px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.not-found-state h2 {
+  font-family: var(--font-serif);
+  font-size: 24px;
+  color: var(--color-primary);
+}
+
+.not-found-state p {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--color-text-muted);
+}
+
+/* ── Responsive adjustments (Responsividad en pantalla de Mis Pedidos y Detalle) ── */
 @media (max-width: 960px) {
   .orders-main-wrapper,
   .order-detail-main {
@@ -4649,11 +4796,12 @@ cart-drawer,
 
   .orders-table-card {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .orders-table-header-row,
   .orders-table-row {
-    min-width: 800px;
+    min-width: 960px;
   }
 
   .order-info-grid-row {
@@ -4672,10 +4820,161 @@ cart-drawer,
 
   .calendar-panel-card {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .calendar-weekdays-bar,
   .calendar-month-grid {
-    min-width: 650px;
+    min-width: 680px;
+  }
+}
+
+@media (max-width: 860px) {
+  .complementary-order-card {
+    flex-wrap: wrap;
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .comp-ref-block {
+    width: auto;
+    min-width: 120px;
+  }
+
+  .comp-dates-block {
+    flex: 1 1 200px;
+  }
+
+  .comp-status-block {
+    width: auto;
+  }
+
+  .comp-payment-block {
+    width: auto;
+  }
+
+  .comp-amount-block {
+    width: auto;
+  }
+
+  .comp-action-block {
+    width: 100%;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .comp-action-block .btn-view-order-detail {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .orders-page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 18px;
+  }
+
+  .orders-headline {
+    font-size: 28px;
+  }
+
+  .btn-explore-catalog {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .order-detail-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 14px;
+  }
+
+  .order-detail-title {
+    font-size: 28px;
+  }
+
+  .order-status-banner-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .status-banner-date-box {
+    align-self: stretch;
+    border-left: none;
+    border-top: 1px solid var(--color-border-beige);
+    padding-left: 0;
+    padding-top: 12px;
+  }
+
+  .item-main-row {
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .item-identity-cell {
+    width: 100%;
+  }
+
+  .custom-options-row {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+@media (max-width: 640px) {
+  .orders-main-wrapper,
+  .order-detail-main {
+    padding: 20px 16px;
+  }
+
+  .orders-filters-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .orders-pill-group {
+    width: 100%;
+    display: flex;
+  }
+
+  .orders-pill-btn {
+    flex: 1;
+    text-align: center;
+    padding: 8px 6px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .calendar-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .calendar-title-wrap {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+
+  .calendar-current-month {
+    font-size: 22px;
+  }
+
+  .calendar-month-arrows {
+    align-self: flex-end;
+  }
+
+  .orders-page-footer,
+  .order-detail-footer {
+    flex-direction: column;
+    text-align: center;
+    gap: 8px;
+    padding: 20px 16px;
+    height: auto;
   }
 }

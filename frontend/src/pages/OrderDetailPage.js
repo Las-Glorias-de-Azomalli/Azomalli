@@ -10,44 +10,40 @@ export function OrderDetailPage({
   onOpenCart,
   onNavigate
 }) {
-  const { user, token } = useAuth();
+  const { user, token, isAuthenticated } = useAuth();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      if (onNavigate) {
+        onNavigate('/login');
+      } else {
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }
+  }, [isAuthenticated, onNavigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
     let isMounted = true;
     async function loadOrder() {
       try {
         setLoading(true);
         setError(null);
 
-        // Si existe un orderId numérico o con prefijo
-        const numericId = parseInt(String(orderId || '').replace(/\D/g, ''), 10) || 1048;
-
-        try {
-          const apiOrder = await fetchOrderById(numericId, token);
-          if (isMounted && apiOrder) {
-            setOrder(apiOrder);
-            return;
-          }
-        } catch {
-          // Si la API falla o el pedido no existe en backend (ej. demo 1048/1044/1038)
+        const numericId = parseInt(String(orderId || '').replace(/\D/g, ''), 10);
+        if (!numericId) {
+          setError('Identificador de pedido no válido.');
+          return;
         }
 
-        // Buscar en DEMO_ORDERS
-        const demoMatch = DEMO_ORDERS.find(
-          (o) =>
-            o.pedido_id === numericId ||
-            o.codigo_pedido === `AG-${numericId}` ||
-            String(o.pedido_id) === String(orderId)
-        );
-
+        const apiOrder = await fetchOrderById(numericId, token);
         if (isMounted) {
-          if (demoMatch) {
-            setOrder(demoMatch);
-          } else if (DEMO_ORDERS.length > 0) {
-            setOrder(DEMO_ORDERS[0]);
+          if (apiOrder) {
+            setOrder(apiOrder);
           } else {
             setError('Pedido no encontrado.');
           }
@@ -65,7 +61,7 @@ export function OrderDetailPage({
     return () => {
       isMounted = false;
     };
-  }, [orderId, token]);
+  }, [orderId, token, isAuthenticated]);
 
   const items = useMemo(() => {
     if (!order || !order.detalles) return [];
@@ -80,13 +76,31 @@ export function OrderDetailPage({
 
   const totalProductos = items.length;
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   if (loading) {
     return (
       <div className="azomalli-app order-detail-view">
         <Navbar cartCount={cartCount} onOpenCart={onOpenCart} onNavigate={onNavigate} />
         <main className="order-detail-main">
           <div className="order-detail-container loading-state">
-            <p>Cargando detalles del pedido...</p>
+            <div className="order-detail-loading-box">
+              <div className="order-detail-spinner" />
+              <p className="order-detail-loading-text">Cargando detalles del pedido...</p>
+              <span className="order-detail-loading-subtext">
+                Consultando la información más reciente de tu encargo...
+              </span>
+            </div>
+
+            <div className="order-detail-skeleton-wrapper" aria-hidden="true">
+              <div className="skeleton-line skeleton-back-btn" />
+              <div className="skeleton-line skeleton-title" />
+              <div className="skeleton-card skeleton-banner" />
+              <div className="skeleton-card skeleton-info" />
+              <div className="skeleton-card skeleton-items" />
+            </div>
           </div>
         </main>
       </div>
@@ -100,7 +114,7 @@ export function OrderDetailPage({
         <main className="order-detail-main">
           <div className="order-detail-container not-found-state">
             <h2>Pedido no encontrado</h2>
-            <p>No se encontró la información del pedido solicitado.</p>
+            <p>{error || 'No se encontró la información del pedido solicitado.'}</p>
             <button
               type="button"
               className="btn-back-to-orders"
@@ -118,7 +132,7 @@ export function OrderDetailPage({
   const formattedCode = order.codigo_pedido || `AG-${String(order.pedido_id).padStart(4, '0')}`;
   const buyerName =
     order.cliente_nombre ||
-    (user ? user.nombre || user.email : 'Ana · Demo');
+    (user ? user.nombre || user.email : 'Cliente');
 
   return (
     <div className="azomalli-app order-detail-view">
@@ -167,7 +181,7 @@ export function OrderDetailPage({
             <div className="status-banner-info">
               <h2 className="status-banner-headline">{st.label}</h2>
               <p className="status-banner-caption">
-                Así aparece este pedido en tu historial de demostración.
+                Así aparece este pedido en tu historial.
               </p>
             </div>
 
@@ -328,8 +342,8 @@ export function OrderDetailPage({
             <div className="closing-quote-card">
               <h3 className="closing-quote-title">Un pequeño gusto. Un gran momento.</h3>
               <p className="closing-quote-desc">
-                Pedido histórico de demostración. La fecha de entrega y el estado{' '}
-                <strong>{st.label}</strong> se muestran tal como están registrados, sin actualizarse por la fecha actual.
+                La fecha de entrega y el estado{' '}
+                <strong>{st.label}</strong> se muestran tal como están registrados.
               </p>
             </div>
 
@@ -359,7 +373,7 @@ export function OrderDetailPage({
 
       <footer className="order-detail-footer">
         <span className="footer-title">De nuestras manos a tu mesa.</span>
-        <span className="footer-credits">Las Glorias de Azomalli · Datos de demostración · MXN</span>
+        <span className="footer-credits">Las Glorias de Azomalli · MXN</span>
       </footer>
     </div>
   );

@@ -201,6 +201,64 @@ export function getStatusInfo(status) {
   };
 }
 
+export function getInitialCalendarDate(orderList) {
+  if (!orderList || orderList.length === 0) {
+    return new Date();
+  }
+
+  const parseOrderDate = (o) => {
+    if (!o) return null;
+    const raw = String(o.fecha_entrega || o.fecha_pedido || '').split('T')[0];
+    const parts = raw.split('-');
+    if (parts.length === 3) {
+      const y = parseInt(parts[0], 10);
+      const m = parseInt(parts[1], 10) - 1;
+      const d = parseInt(parts[2], 10);
+      if (!isNaN(y) && !isNaN(m) && !isNaN(d)) {
+        return new Date(y, m, d);
+      }
+    }
+    return null;
+  };
+
+  // 1. Filtrar pedidos activos (en preparación / pendientes)
+  const activeOrders = orderList.filter((o) => getStatusInfo(o.estado).isInProgress);
+
+  // Buscar el pedido activo más antiguo
+  if (activeOrders.length > 0) {
+    const sortedActive = [...activeOrders].sort((a, b) => {
+      const da = parseOrderDate(a);
+      const db = parseOrderDate(b);
+      if (!da && !db) return 0;
+      if (!da) return 1;
+      if (!db) return -1;
+      return da.getTime() - db.getTime();
+    });
+
+    const oldestDate = parseOrderDate(sortedActive[0]);
+    if (oldestDate && !isNaN(oldestDate.getTime())) {
+      return new Date(oldestDate.getFullYear(), oldestDate.getMonth(), 1);
+    }
+  }
+
+  // Si no hay pedidos activos, buscar el pedido más antiguo de todos los registrados
+  const sortedAll = [...orderList].sort((a, b) => {
+    const da = parseOrderDate(a);
+    const db = parseOrderDate(b);
+    if (!da && !db) return 0;
+    if (!da) return 1;
+    if (!db) return -1;
+    return da.getTime() - db.getTime();
+  });
+
+  const oldestDate = parseOrderDate(sortedAll[0]);
+  if (oldestDate && !isNaN(oldestDate.getTime())) {
+    return new Date(oldestDate.getFullYear(), oldestDate.getMonth(), 1);
+  }
+
+  return new Date();
+}
+
 export function OrdersPage({
   cartCount = 0,
   onOpenCart,
@@ -209,24 +267,53 @@ export function OrdersPage({
   initialView = 'table',
   initialStatus = 'todos'
 }) {
-  const { user, token } = useAuth();
-  const [orders, setOrders] = useState(initialOrders || DEMO_ORDERS);
+  const { user, token, isAuthenticated } = useAuth();
+  const [orders, setOrders] = useState(initialOrders || []);
+  const [loading, setLoading] = useState(!initialOrders);
   const [currentView, setCurrentView] = useState(initialView); // 'table' | 'calendar'
   const [statusFilter, setStatusFilter] = useState(initialStatus); // 'todos' | 'en_curso'
 
-  // Para navegación de calendario: defecto Octubre 2026 (según Figma) o mes actual
-  const [calendarDate, setCalendarDate] = useState(new Date(2026, 9, 1)); // Octubre 2026
+  // Para navegación de calendario: empezar desde el mes del pedido activo más antiguo
+  const [calendarDate, setCalendarDate] = useState(() => getInitialCalendarDate(initialOrders));
 
   useEffect(() => {
+    if (!isAuthenticated) {
+      if (onNavigate) {
+        onNavigate('/login');
+      } else {
+        window.history.pushState({}, '', '/login');
+        window.dispatchEvent(new PopStateEvent('popstate'));
+      }
+    }
+  }, [isAuthenticated, onNavigate]);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    if (initialOrders) {
+      setOrders(initialOrders);
+      setCalendarDate(getInitialCalendarDate(initialOrders));
+      setLoading(false);
+      return;
+    }
+
     let isMounted = true;
     async function loadOrders() {
       try {
+        setLoading(true);
         const data = await fetchUserOrders(token);
-        if (isMounted && data && data.length > 0) {
-          setOrders(data);
+        if (isMounted) {
+          const loaded = Array.isArray(data) ? data : [];
+          setOrders(loaded);
+          if (loaded.length > 0) {
+            setCalendarDate(getInitialCalendarDate(loaded));
+          }
         }
       } catch {
-        // En caso de error de red o backend no conectado, mantener los pedidos iniciales
+        if (isMounted) {
+          setOrders([]);
+        }
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
 
@@ -234,11 +321,11 @@ export function OrdersPage({
     return () => {
       isMounted = false;
     };
-  }, [token]);
+  }, [token, isAuthenticated, initialOrders]);
 
   const displayName = user
-    ? user.nombre || (user.email ? user.email.split('@')[0] : 'Ana · Demo')
-    : 'Ana · Demo';
+    ? user.nombre || (user.email ? user.email.split('@')[0] : 'Usuario')
+    : 'Usuario';
 
   // Cálculos de conteo
   const inProgressCount = useMemo(() => {
@@ -352,6 +439,10 @@ export function OrdersPage({
     }
   };
 
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
     <div className="azomalli-app orders-page-view">
       <Navbar cartCount={cartCount} onOpenCart={onOpenCart} onNavigate={onNavigate} />
@@ -437,7 +528,7 @@ export function OrdersPage({
             </div>
 
             <p className="orders-view-caption">
-              Vista {currentView === 'table' ? 'Tabla' : 'Calendario'} activa · datos de demostración para {displayName}.
+              Vista {currentView === 'table' ? 'Tabla' : 'Calendario'} activa para {displayName}.
             </p>
           </div>
 
@@ -456,9 +547,18 @@ export function OrdersPage({
               </div>
 
               <div className="orders-table-body">
-                {filteredOrders.length === 0 ? (
+                {loading ? (
+                  <div className="orders-loading-state">
+                    <div className="orders-spinner" />
+                    <p>Cargando pedidos...</p>
+                  </div>
+                ) : filteredOrders.length === 0 ? (
                   <div className="orders-empty-state">
-                    <p>No se encontraron pedidos con este filtro.</p>
+                    <p>
+                      {orders.length === 0
+                        ? 'Aún no tienes pedidos registrados.'
+                        : 'No se encontraron pedidos con este filtro.'}
+                    </p>
                   </div>
                 ) : (
                   filteredOrders.map((pedido) => {
@@ -669,7 +769,7 @@ export function OrdersPage({
                   </div>
 
                   <p className="complementary-disclaimer">
-                    Historial de demostración: las fechas y los estados se conservan tal como fueron registrados. Cada tarjeta se ubica en su día de entrega; en estos tres pedidos, la fecha de pedido coincide con la de entrega.
+                    Historial de pedidos: las fechas y los estados se muestran conforme fueron registrados en el sistema.
                   </p>
                 </div>
               )}
@@ -680,7 +780,7 @@ export function OrdersPage({
 
       <footer className="orders-page-footer">
         <span className="footer-title">De nuestras manos a tu mesa.</span>
-        <span className="footer-credits">Las Glorias de Azomalli · Datos de demostración · MXN</span>
+        <span className="footer-credits">Las Glorias de Azomalli · MXN</span>
       </footer>
     </div>
   );

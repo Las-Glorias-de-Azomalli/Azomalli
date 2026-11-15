@@ -91,11 +91,17 @@ describe('Pantalla OrdersPage (Figma 15:10586 y 81:1619)', () => {
   test('Cambia a la vista Calendario (Figma 81:1619) con cuadrícula, días y tarjetas de entrega', async () => {
     render(<OrdersPage />);
 
+    await waitFor(() => {
+      expect(screen.getByText('AG-1048')).toBeInTheDocument();
+    });
+
     const btnCalendar = screen.getByRole('tab', { name: 'Calendario' });
     fireEvent.click(btnCalendar);
 
-    // Encabezado de mes y leyenda
-    expect(screen.getByText('Octubre 2026')).toBeInTheDocument();
+    // Encabezado de mes y leyenda (inicializa en Octubre 2026 por el pedido activo AG-1048)
+    await waitFor(() => {
+      expect(screen.getByText('Octubre 2026')).toBeInTheDocument();
+    });
     expect(screen.getByText('Por fecha de entrega')).toBeInTheDocument();
 
     // Días de la semana
@@ -128,5 +134,75 @@ describe('Pantalla OrdersPage (Figma 15:10586 y 81:1619)', () => {
 
     fireEvent.click(detailButtons[0]);
     expect(handleNavigate).toHaveBeenCalledWith('/pedidos/1048');
+  });
+
+  test('Redirige a /login y no muestra pantalla mock si el usuario no está autenticado', () => {
+    jest.spyOn(AuthContextModule, 'useAuth').mockReturnValue({
+      user: null,
+      token: null,
+      isAuthenticated: false
+    });
+
+    const handleNavigate = jest.fn();
+    const { container } = render(<OrdersPage onNavigate={handleNavigate} />);
+
+    expect(handleNavigate).toHaveBeenCalledWith('/login');
+    // No debe renderizarse la pantalla de pedidos ni pedidos mock
+    expect(screen.queryByText('Mis pedidos')).not.toBeInTheDocument();
+    expect(screen.queryByText('AG-1048')).not.toBeInTheDocument();
+  });
+
+  test('No aplica fallback a mock si el usuario no tiene pedidos registrados', async () => {
+    jest.spyOn(OrderServiceModule, 'fetchUserOrders').mockImplementation(async () => {
+      return [];
+    });
+
+    render(<OrdersPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Aún no tienes pedidos registrados.')).toBeInTheDocument();
+    });
+
+    // Asegura que no se muestran pedidos mock como AG-1048
+    expect(screen.queryByText('AG-1048')).not.toBeInTheDocument();
+  });
+
+  test('El calendario empieza en el mes del pedido activo más antiguo (ej. Noviembre 2026)', async () => {
+    const novemberOrders = [
+      {
+        pedido_id: 2001,
+        codigo_pedido: 'AG-2001',
+        fecha_entrega: '2026-11-20',
+        estado: 'PENDIENTE',
+        monto_total: 150.0,
+        total_piezas: 3
+      },
+      {
+        pedido_id: 2002,
+        codigo_pedido: 'AG-2002',
+        fecha_entrega: '2026-11-10',
+        estado: 'PENDIENTE',
+        monto_total: 100.0,
+        total_piezas: 2
+      },
+      {
+        pedido_id: 2000,
+        codigo_pedido: 'AG-2000',
+        fecha_entrega: '2026-10-01',
+        estado: 'ENTREGADO',
+        monto_total: 80.0,
+        total_piezas: 1
+      }
+    ];
+
+    jest.spyOn(OrderServiceModule, 'fetchUserOrders').mockResolvedValue(novemberOrders);
+
+    render(<OrdersPage initialView="calendar" />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Noviembre 2026')).toBeInTheDocument();
+      expect(screen.getByText('AG-2002')).toBeInTheDocument();
+      expect(screen.getByText('AG-2001')).toBeInTheDocument();
+    });
   });
 });

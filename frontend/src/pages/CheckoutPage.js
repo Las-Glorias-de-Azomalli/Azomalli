@@ -364,10 +364,6 @@ export function CheckoutPage({
                     <span className="legend-text">Seleccionado</span>
                   </div>
                 </div>
-
-                <p className="calendar-demo-disclaimer">
-                  Disponibilidad de demostración: las fechas habilitadas no representan una política real de la panadería.
-                </p>
               </div>
 
               {/* Tarjeta de Fecha Elegida */}
@@ -522,10 +518,6 @@ export function CheckoutPage({
               <p className="order-pending-notice">
                 Al confirmar, tu pedido se registrará con estado inicial Pendiente.
               </p>
-
-              <p className="order-disclaimer-notice">
-                Compra de demostración. Esta vista no realiza cobros ni operaciones bancarias.
-              </p>
             </aside>
           </div>
         </div>
@@ -533,7 +525,7 @@ export function CheckoutPage({
 
       <footer className="checkout-page-footer">
         <span className="footer-title">De nuestras manos a tu mesa.</span>
-        <span className="footer-credits">Las Glorias de Azomalli · Datos de demostración · MXN</span>
+        <span className="footer-credits">Las Glorias de Azomalli · MXN</span>
       </footer>
     </div>
   );

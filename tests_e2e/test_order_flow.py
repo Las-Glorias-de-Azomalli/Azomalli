@@ -1,4 +1,5 @@
 import os
+import re
 import pytest
 from playwright.sync_api import Page, expect
 
@@ -63,9 +64,10 @@ def test_e2e_cart_page_renders_design_and_customization(page: Page):
 
 def test_e2e_checkout_schedule_calendar_and_cash_payment(page: Page):
     """E2E-ORDER-03: Calendario para agendar pedido (81:1413), pago en efectivo y confirmación."""
-    # 1. Iniciar sesión con la cuenta demo
+    # 1. Iniciar sesión con credenciales válidas
     page.goto(f"{FRONTEND_URL}/login")
-    page.locator(".demo-account-hint").click()
+    page.locator("#login-email").fill("ana@example.com")
+    page.locator("#login-password").fill("Panaderia123!")
     page.locator("#login-submit-btn").click()
     page.wait_for_url(f"{FRONTEND_URL}/", timeout=15000)
 
@@ -98,30 +100,44 @@ def test_e2e_checkout_schedule_calendar_and_cash_payment(page: Page):
     expect(page.locator(".success-desc")).to_contain_text("GLO-")
 
 
+def test_e2e_unauthenticated_orders_redirects_to_login(page: Page):
+    """Verifica que un usuario no autenticado no acceda a /pedidos y sea redirigido a /login."""
+    page.goto(f"{FRONTEND_URL}/pedidos")
+    page.wait_for_url(f"{FRONTEND_URL}/login", timeout=10000)
+    expect(page.locator(".login-title")).to_have_text("Iniciar sesión")
+
+
 def test_e2e_orders_page_table_and_calendar_views(page: Page):
     """E2E-ORDER-04: Mis pedidos (Figma 15:10586) y vista Calendario (Figma 81:1619)."""
-    # 1. Navegar a Mis pedidos
+    # 1. Iniciar sesión para acceder a Mis pedidos
+    page.goto(f"{FRONTEND_URL}/login")
+    page.locator("#login-email").fill("ana@example.com")
+    page.locator("#login-password").fill("Panaderia123!")
+    page.locator("#login-submit-btn").click()
+    page.wait_for_url(f"{FRONTEND_URL}/", timeout=15000)
+
+    # 2. Navegar a Mis pedidos
     page.goto(f"{FRONTEND_URL}/pedidos")
 
-    # 2. Validar encabezado de la página (Figma 15:10586)
+    # 3. Validar encabezado de la página (Figma 15:10586)
     expect(page.locator(".orders-eyebrow")).to_have_text("DE NUESTRAS MANOS A TU MESA")
     expect(page.locator(".orders-headline")).to_have_text("Mis pedidos")
     expect(page.locator(".btn-explore-catalog")).to_be_visible()
 
-    # 3. Validar filtros y controles de vista
+    # 4. Validar filtros y controles de vista
     expect(page.locator("#filter-all-orders-btn")).to_be_visible()
     expect(page.locator("#filter-active-orders-btn")).to_be_visible()
     expect(page.locator("#view-table-btn")).to_be_visible()
     expect(page.locator("#view-calendar-btn")).to_be_visible()
 
-    # 4. Validar vista Tabla activa por defecto
+    # 5. Validar vista Tabla activa por defecto
     expect(page.locator("#orders-table-wrapper")).to_be_visible()
     expect(page.locator(".orders-table-header-row")).to_contain_text("Pedido")
     expect(page.locator(".orders-table-header-row")).to_contain_text("Total")
     expect(page.locator(".order-code-text").first).to_be_visible()
     expect(page.locator(".btn-view-order-detail").first).to_be_visible()
 
-    # 5. Cambiar a vista Calendario (Figma 81:1619)
+    # 6. Cambiar a vista Calendario (Figma 81:1619)
     page.locator("#view-calendar-btn").click()
     expect(page.locator("#orders-calendar-wrapper")).to_be_visible()
     expect(page.locator(".calendar-criteria-text")).to_have_text("Por fecha de entrega")
@@ -132,32 +148,42 @@ def test_e2e_orders_page_table_and_calendar_views(page: Page):
 
 def test_e2e_order_detail_view(page: Page):
     """E2E-ORDER-05: Detalle del pedido (Figma 81:1829), información general y personalizaciones."""
-    page.goto(f"{FRONTEND_URL}/pedidos/1048")
+    # 1. Iniciar sesión para acceder al detalle de pedidos
+    page.goto(f"{FRONTEND_URL}/login")
+    page.locator("#login-email").fill("ana@example.com")
+    page.locator("#login-password").fill("Panaderia123!")
+    page.locator("#login-submit-btn").click()
+    page.wait_for_url(f"{FRONTEND_URL}/", timeout=15000)
 
-    # 1. Validar botón de retorno y encabezado
+    page.goto(f"{FRONTEND_URL}/pedidos")
+
+    # 2. Clic en Ver detalle del primer pedido de la lista
+    expect(page.locator(".btn-view-order-detail").first).to_be_visible(timeout=10000)
+    page.locator(".btn-view-order-detail").first.click()
+    page.wait_for_url(re.compile(r"/pedidos/\d+"), timeout=10000)
+
+    # 3. Validar botón de retorno y encabezado
     expect(page.locator("#back-to-orders-btn")).to_be_visible()
     expect(page.locator(".order-detail-eyebrow")).to_have_text("CADA DETALLE, HECHO CON CARIÑO")
-    expect(page.locator(".order-detail-title")).to_contain_text("Pedido AG-1048")
+    expect(page.locator(".order-detail-title")).to_contain_text("Pedido")
 
-    # 2. Validar banner de estado de preparación
+    # 4. Validar banner de estado
     expect(page.locator(".order-status-banner-card")).to_be_visible()
     expect(page.locator(".registered-delivery-label")).to_have_text("ENTREGA REGISTRADA")
 
-    # 3. Validar tarjeta de información general
+    # 5. Validar tarjeta de información general
     expect(page.locator(".order-info-title")).to_have_text("Información del pedido")
     expect(page.locator(".info-cell-label", has_text="Cuenta del comprador")).to_be_visible()
     expect(page.locator(".info-cell-label", has_text="Lugar de entrega")).to_be_visible()
 
-    # 4. Validar sección de productos "Lo que elegiste" y desglose
+    # 6. Validar sección de productos "Lo que elegiste"
     expect(page.locator(".items-section-title")).to_have_text("Lo que elegiste")
-    expect(page.locator(".item-customization-box").first).to_be_visible()
 
-    # 5. Validar tarjeta de cierre y total general
+    # 7. Validar tarjeta de cierre y total general
     expect(page.locator(".closing-quote-title")).to_have_text("Un pequeño gusto. Un gran momento.")
     expect(page.locator(".closing-total-card")).to_contain_text("Total general")
-    expect(page.locator(".grand-val")).to_contain_text("$296.00")
 
-    # 6. Probar botón de volver a Mis pedidos
+    # 8. Probar botón de volver a Mis pedidos
     page.locator("#back-to-orders-btn").click()
     page.wait_for_url(f"{FRONTEND_URL}/pedidos", timeout=10000)
     expect(page.locator(".orders-headline")).to_have_text("Mis pedidos")
