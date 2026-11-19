@@ -10,13 +10,21 @@ from app.models.detalle_pedido import DetallePedido
 from app.models.enums import CategoriaProducto, RolDeUsuario, EstadoPedido, MetodoDePago
 
 
-def get_products(filter_type=None, category=None, only_active=True):
+def get_products(filter_type=None, category=None, only_active=True, status=None, search=None):
     """
-    Aplica filtros por estado activo, productos de temporada y categoría ENUM (DULCE/SALADO).
+    Aplica filtros por estado activo, productos de temporada, categoría ENUM (DULCE/SALADO),
+    estado ('active', 'archived', 'all') y término de búsqueda.
     """
     query = Producto.query
 
-    if only_active:
+    if status:
+        status_clean = str(status).strip().lower()
+        if status_clean in ('active', 'activo', 'activos'):
+            query = query.filter(Producto.activo == True)
+        elif status_clean in ('archived', 'archivado', 'archivados', 'inactive', 'inactivo'):
+            query = query.filter(Producto.activo == False)
+        # si es 'all' o 'todos', no filtramos por activo
+    elif only_active:
         query = query.filter_by(activo=True)
 
     if filter_type == 'seasonal':
@@ -24,19 +32,197 @@ def get_products(filter_type=None, category=None, only_active=True):
 
     if category and category.lower() != 'todos':
         cat_clean = category.strip().upper()
-        if cat_clean in ('DULCE', 'DULCES'):
+        if cat_clean in ('DULCE', 'DULCES', 'PAN DULCE'):
             query = query.filter_by(categoria=CategoriaProducto.DULCE)
-        elif cat_clean in ('SALADO', 'SALADOS'):
+        elif cat_clean in ('SALADO', 'SALADOS', 'PAN SALADO'):
             query = query.filter_by(categoria=CategoriaProducto.SALADO)
+
+    if search and str(search).strip():
+        term = str(search).strip()
+        numeric_id = None
+        if term.upper().startswith("PAN-"):
+            clean_num = term[4:].strip()
+            if clean_num.isdigit():
+                numeric_id = int(clean_num)
+        elif term.isdigit():
+            numeric_id = int(term)
+
+        if numeric_id is not None:
+            query = query.filter((Producto.producto_id == numeric_id) | Producto.nombre.ilike(f"%{term}%"))
+        else:
+            query = query.filter(Producto.nombre.ilike(f"%{term}%") | Producto.descripcion.ilike(f"%{term}%"))
 
     products = query.order_by(Producto.producto_id.asc()).all()
     return [p.to_dict() for p in products]
 
 
-def get_product_by_id(producto_id):
-    """Obtiene un producto por ID"""
-    product = Producto.query.filter_by(producto_id=producto_id, activo=True).first()
+def get_product_by_id(producto_id, only_active=False):
+    """Obtiene un producto por ID. Si only_active es True, solo retorna si activo=True."""
+    query = Producto.query.filter_by(producto_id=int(producto_id))
+    if only_active:
+        query = query.filter_by(activo=True)
+    product = query.first()
     return product.to_dict() if product else None
+
+
+def create_product(data):
+    """Crea un nuevo producto en el catálogo."""
+    if not data or not isinstance(data, dict):
+        raise ValueError("Los datos del producto son requeridos.")
+
+    nombre = str(data.get("nombre") or "").strip()
+    if not nombre:
+        raise ValueError("El nombre del producto es obligatorio.")
+
+    descripcion = str(data.get("descripcion") or "").strip()
+    if not descripcion:
+        raise ValueError("La descripción del producto es obligatoria.")
+
+    precio_raw = data.get("precio_unitario")
+    if precio_raw is None:
+        raise ValueError("El precio unitario es obligatorio.")
+    try:
+        precio_val = float(precio_raw)
+        if precio_val <= 0:
+            raise ValueError("El precio unitario debe ser mayor a 0.")
+    except (TypeError, ValueError):
+        raise ValueError("El precio unitario debe ser un número válido mayor a 0.")
+
+    cat_raw = str(data.get("categoria") or "").strip().upper()
+    if cat_raw in ("DULCE", "PAN DULCE", "DULCES"):
+        categoria_enum = CategoriaProducto.DULCE
+    elif cat_raw in ("SALADO", "PAN SALADO", "SALADOS"):
+        categoria_enum = CategoriaProducto.SALADO
+    else:
+        raise ValueError(f"Categoría inválida: '{cat_raw}'. Debe ser DULCE o SALADO.")
+
+    imagen_url = data.get("imagen_url")
+    if imagen_url:
+        imagen_url = str(imagen_url).strip()
+    else:
+        imagen_url = "/images/placeholder.svg"
+
+    es_personalizable = bool(data.get("es_personalizable", False))
+    es_temporada = bool(data.get("es_temporada", False))
+    activo = bool(data.get("activo", True))
+
+    sabor = data.get("sabor")
+    extra_fields = {}
+    for key in ("unidad", "peso", "ingredientes", "alergenos", "distintivos"):
+        if key in data and data[key] is not None:
+            extra_fields[key] = data[key]
+
+    if extra_fields:
+        if isinstance(sabor, dict):
+            sabor = {**sabor, **extra_fields}
+        elif isinstance(sabor, str):
+            sabor = {"opciones": [sabor], **extra_fields}
+        else:
+            sabor = extra_fields
+
+    nuevo_producto = Producto(
+        nombre=nombre,
+        descripcion=descripcion,
+        precio_unitario=precio_val,
+        imagen_url=imagen_url,
+        es_personalizable=es_personalizable,
+        sabor=sabor,
+        topping=data.get("topping"),
+        relleno=data.get("relleno"),
+        activo=activo,
+        categoria=categoria_enum,
+        es_temporada=es_temporada
+    )
+
+    db.session.add(nuevo_producto)
+    db.session.commit()
+    return nuevo_producto.to_dict()
+
+
+def update_product(producto_id, data):
+    """Actualiza la información de un producto existente."""
+    producto = Producto.query.filter_by(producto_id=int(producto_id)).first()
+    if not producto:
+        return None
+
+    if "nombre" in data:
+        nombre = str(data["nombre"]).strip()
+        if not nombre:
+            raise ValueError("El nombre del producto no puede estar vacío.")
+        producto.nombre = nombre
+
+    if "descripcion" in data:
+        desc = str(data["descripcion"]).strip()
+        if not desc:
+            raise ValueError("La descripción del producto no puede estar vacía.")
+        producto.descripcion = desc
+
+    if "precio_unitario" in data:
+        try:
+            precio = float(data["precio_unitario"])
+            if precio <= 0:
+                raise ValueError("El precio unitario debe ser mayor a 0.")
+            producto.precio_unitario = precio
+        except (TypeError, ValueError):
+            raise ValueError("El precio unitario debe ser un número válido mayor a 0.")
+
+    if "categoria" in data:
+        cat_raw = str(data["categoria"]).strip().upper()
+        if cat_raw in ("DULCE", "PAN DULCE", "DULCES"):
+            producto.categoria = CategoriaProducto.DULCE
+        elif cat_raw in ("SALADO", "PAN SALADO", "SALADOS"):
+            producto.categoria = CategoriaProducto.SALADO
+        else:
+            raise ValueError(f"Categoría inválida: '{cat_raw}'. Debe ser DULCE o SALADO.")
+
+    if "imagen_url" in data:
+        producto.imagen_url = str(data["imagen_url"]).strip() if data["imagen_url"] else None
+
+    if "es_personalizable" in data:
+        producto.es_personalizable = bool(data["es_personalizable"])
+
+    if "es_temporada" in data:
+        producto.es_temporada = bool(data["es_temporada"])
+
+    if "activo" in data:
+        producto.activo = bool(data["activo"])
+
+    sabor = data.get("sabor", producto.sabor)
+    extra_fields = {}
+    for key in ("unidad", "peso", "ingredientes", "alergenos", "distintivos"):
+        if key in data and data[key] is not None:
+            extra_fields[key] = data[key]
+
+    if extra_fields:
+        if isinstance(sabor, dict):
+            sabor = {**sabor, **extra_fields}
+        elif isinstance(sabor, str):
+            sabor = {"opciones": [sabor], **extra_fields}
+        else:
+            sabor = extra_fields
+
+    if sabor is not None or "sabor" in data or extra_fields:
+        producto.sabor = sabor
+
+    if "topping" in data:
+        producto.topping = data["topping"]
+
+    if "relleno" in data:
+        producto.relleno = data["relleno"]
+
+    db.session.commit()
+    return producto.to_dict()
+
+
+def archive_product(producto_id, archive=True):
+    """Archiva (activo=False) o reactiva (activo=True) un producto del catálogo."""
+    producto = Producto.query.filter_by(producto_id=int(producto_id)).first()
+    if not producto:
+        return None
+
+    producto.activo = not bool(archive)
+    db.session.commit()
+    return producto.to_dict()
 
 def register_account(email, telefono, raw_password, persona_id, rol=RolDeUsuario.CLIENTE):
     """Crea una nueva cuenta con contraseña cifrada en bcrypt."""

@@ -17,6 +17,11 @@ export const API_ENDPOINTS = {
   PRODUCTS: {
     LIST: `${API_BASE_URL}/api/products`,
     BY_ID: (id) => `${API_BASE_URL}/api/products/${id}`,
+    CREATE: `${API_BASE_URL}/api/products`,
+    UPDATE: (id) => `${API_BASE_URL}/api/products/${id}`,
+    ARCHIVE: (id) => `${API_BASE_URL}/api/products/${id}/archive`,
+    RESTORE: (id) => `${API_BASE_URL}/api/products/${id}/restore`,
+    DELETE: (id) => `${API_BASE_URL}/api/products/${id}`,
   },
 
   // Pedidos / Encargos

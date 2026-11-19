@@ -140,5 +140,30 @@ def seed_database():
         else:
             print("La cuenta demo ya existe. Omitiendo seed de cuenta.")
 
+        # Poblar cuenta administradora si no existe
+        cuenta_admin = Cuenta.query.filter_by(email="admin@azomalli.com").first()
+        if not cuenta_admin:
+            print("Poblando cuenta administradora (admin@azomalli.com)...")
+            persona_admin = Persona(
+                nombre="Administradora",
+                primer_apellido="Azomalli",
+                fecha_registro=datetime.date.today()
+            )
+            db.session.add(persona_admin)
+            db.session.flush()
+
+            cuenta_admin = Cuenta(
+                email="admin@azomalli.com",
+                telefono="9219876543",
+                rol=RolDeUsuario.ADMINISTRADOR,
+                persona_id=persona_admin.persona_id
+            )
+            cuenta_admin.set_password("Admin123!")
+            db.session.add(cuenta_admin)
+            db.session.commit()
+            print("Cuenta administradora creada exitosamente.")
+        else:
+            print("La cuenta administradora ya existe. Omitiendo seed de admin.")
+
 if __name__ == "__main__":
     seed_database()
