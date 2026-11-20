@@ -22,9 +22,12 @@ function extractOptions(rawField, defaultOptions = []) {
         typeof opt === 'string' ? { label: opt, extra: 0 } : opt
       );
     }
-    // Caso clave-valor simple como {"sabor": "piña"}
-    const values = Object.values(rawField);
-    if (values.length > 0 && typeof values[0] === 'string') {
+    // Caso clave-valor simple como {"sabor": "piña"}, ignorando metadatos de ficha administrativa
+    const metaKeys = new Set(['unidad', 'peso', 'ingredientes', 'alergenos', 'distintivos']);
+    const values = Object.entries(rawField)
+      .filter(([k, val]) => !metaKeys.has(k) && typeof val === 'string')
+      .map(([, val]) => val);
+    if (values.length > 0) {
       return values.map((val) => ({ label: val, extra: 0 }));
     }
   }

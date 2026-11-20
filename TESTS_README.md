@@ -25,7 +25,7 @@ Azomalli/
 ├── backend/tests/              # 🔹 Pruebas de Backend (Python / Pytest)
 │   ├── conftest.py             # Configuración, fixtures y rollback de base de datos
 │   ├── test_models.py          # Unitarias: Enums, Hashing Bcrypt, Cuenta, Producto, Pedido y DetallePedido
-│   ├── test_api_products.py    # Integración: Endpoints /api/products y filtros
+│   ├── test_api_products.py    # Integración: Endpoints /api/products, filtros y CRUD (crear, editar, archivar, reactivar)
 │   ├── test_api_auth.py        # Integración: Flujo de registro, login y tokens JWT
 │   └── test_api_orders.py      # Integración: Endpoints /api/orders, flujo efectivo y JSONB
 │
@@ -38,7 +38,10 @@ Azomalli/
 │   ├── CartPage.test.js        # Pantalla: Vista completa de carrito (Figma 15:10487)
 │   ├── CheckoutPage.test.js    # Pantalla: Calendario y confirmación de pedido (Figma 81:1413)
 │   ├── OrdersPage.test.js      # Pantalla: Mis pedidos en Tabla (Figma 15:10586) y Calendario (Figma 81:1619)
-│   └── OrderDetailPage.test.js # Pantalla: Detalle del pedido y desglose de personalizaciones (Figma 81:1829)
+│   ├── OrderDetailPage.test.js # Pantalla: Detalle del pedido y desglose de personalizaciones (Figma 81:1829)
+│   ├── AdminCatalogPage.test.js# Pantalla: Catálogo de administración (Figma 15:10955), métricas y acciones
+│   ├── AdminProductCreatePage.test.js # Pantalla: Agregar producto (Figma 15:11113), formulario y vista previa
+│   └── AdminProductEditPage.test.js   # Pantalla: Editar y archivar producto (Figma 15:11272)
 │
 └── tests_e2e/                  # 🔹 Pruebas End-to-End (Playwright en Chromium Headless + Docker)
     ├── Dockerfile              # Runner oficial Playwright Python de Microsoft
@@ -46,7 +49,8 @@ Azomalli/
     ├── conftest.py             # Fixtures, viewport y argumentos de navegador
     ├── test_cart_and_catalog.py# Flujos reales de catálogo, filtros y carrito
     ├── test_login.py           # Flujos de inicio de sesión, Mi Perfil en navbar y logout
-    └── test_order_flow.py      # Flujo completo de personalización, carrito, agendar pedido, Mis pedidos y Detalle
+    ├── test_order_flow.py      # Flujo completo de personalización, carrito, agendar pedido, Mis pedidos y Detalle
+    └── test_admin_products.py  # Flujos de gestión administrativa: catálogo, agregar, editar y archivar producto
 ```
 
 ---
@@ -72,6 +76,7 @@ Azomalli/
   1. Renderizado de precios formateados en pesos mexicanos (`$XX.XX MXN`) y etiquetas (`PAN DULCE`, `DE TEMPORADA`).
   2. Emisión de eventos al presionar el botón `Agregar al carrito`.
   3. Lógica del hook `useCart`: adición acumulativa de productos, cálculo reactivo del subtotal y persistencia automática en `localStorage`.
+  4. Vistas de administración (`AdminCatalogPage`, `AdminProductCreatePage`, `AdminProductEditPage`): catálogo con métricas (Figma `15:10955`), filtros activos/archivados, formulario de agregar producto con vista previa (Figma `15:11113`), y edición con panel visible de confirmación de archivo (Figma `15:11272`).
 * **Ejecución:**
   ```bash
   cd frontend
@@ -83,9 +88,10 @@ Azomalli/
 ### C. Pruebas de Integración de Backend (`backend/tests/`)
 * **Objetivo:** Validar que los controladores de Flask realicen consultas reales a la base de datos PostgreSQL y gestionen sesiones y tokens de forma adecuada.
 * **Qué valida:**
-  1. Catálogo `/api/products` con filtrado por categoría (`?category=DULCE`) y temporada (`?filter=seasonal`).
-  2. Autenticación `/api/auth`: validación de campos obligatorios, prevención de correos duplicados, inicio de sesión y protección de rutas privadas mediante tokens JWT Bearer.
-  3. Aislamiento transaccional: cada prueba aplica un rollback al finalizar para no ensuciar la base de datos.
+  1. Catálogo `/api/products` con filtrado por categoría (`?category=DULCE`), temporada (`?filter=seasonal`), búsqueda y estado (`?status=archived`).
+  2. CRUD de productos: creación (`POST /api/products`), actualización (`PUT /api/products/<id>`), archivado (`POST /api/products/<id>/archive`) y reactivación (`POST /api/products/<id>/restore`).
+  3. Autenticación `/api/auth`: validación de campos obligatorios, prevención de correos duplicados, inicio de sesión y protección de rutas privadas mediante tokens JWT Bearer.
+  4. Aislamiento transaccional: cada prueba aplica un rollback al finalizar para no ensuciar la base de datos.
 * **Ejecución local:**
   ```bash
   # Con PostgreSQL activo localmente o mediante Docker (docker compose up -d db)
@@ -109,6 +115,7 @@ Azomalli/
   * **E2E-ORDER-02 y 03:** Pantalla de Carrito (Figma `15:10487`), agendado con selección de fecha en calendario y confirmación con pago en efectivo (Figma `81:1413`).
   * **E2E-ORDER-04:** Pantalla de Mis pedidos (Figma `15:10586`), tabla de pedidos, filtros de estado ("Todos" / "En curso") y conmutación reactiva a vista Calendario con entregas mensuales (Figma `81:1619`).
   * **E2E-ORDER-05:** Detalle del pedido (Figma `81:1829`), banner de estado de preparación, datos de cuenta/entrega/pago, desglose de opciones conservadas por producto y total general.
+  * **E2E-ADMIN-01 a 04:** Catálogo administrativo (Figma `15:10955`), resumen con métricas de activos/archivados, filtrado y búsqueda, formulario de agregar producto con vista previa reactiva (Figma `15:11113`), y edición con panel de confirmación visible de archivo (Figma `15:11272`).
 * **Ejecución:**
   ```bash
   docker compose -f docker-compose.e2e.yml up --build --abort-on-container-exit --exit-code-from e2e_runner

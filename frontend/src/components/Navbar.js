@@ -143,6 +143,20 @@ export function Navbar({ cartCount = 0, onOpenCart, onNavigate }) {
             Mis pedidos
           </a>
 
+          {user?.rol === 'ADMINISTRADOR' && (
+            <a
+              href="/admin/productos"
+              className="nav-link"
+              id="nav-admin-link"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('/admin/productos');
+              }}
+            >
+              Administración
+            </a>
+          )}
+
           {/* Apartado Cuenta / Mi Perfil (Figma 17:70 y 17:77) */}
           <div className="nav-profile-container" ref={dropdownRef}>
             <button
@@ -243,6 +257,21 @@ export function Navbar({ cartCount = 0, onOpenCart, onNavigate }) {
                           Mis pedidos
                         </button>
                       </li>
+                      {user?.rol === 'ADMINISTRADOR' && (
+                        <li>
+                          <button
+                            type="button"
+                            className="dropdown-item-btn"
+                            id="nav-dropdown-admin-btn"
+                            onClick={() => {
+                              setDropdownOpen(false);
+                              navigateTo('/admin/productos');
+                            }}
+                          >
+                            Panel de administración
+                          </button>
+                        </li>
+                      )}
                       <li className="dropdown-divider"></li>
                       <li>
                         <button

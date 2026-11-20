@@ -34,7 +34,7 @@ class Producto(db.Model):
         cat_str = self.categoria.value if hasattr(self.categoria, "value") else str(self.categoria)
         price_val = float(self.precio_unitario) if self.precio_unitario is not None else 0.0
 
-        return {
+        data = {
             "producto_id": self.producto_id,
             "nombre": self.nombre,
             "descripcion": self.descripcion,
@@ -48,6 +48,13 @@ class Producto(db.Model):
             "categoria": cat_str,
             "es_temporada": self.es_temporada,
         }
+
+        if isinstance(self.sabor, dict):
+            for k in ("unidad", "peso", "ingredientes", "alergenos", "distintivos"):
+                if k in self.sabor and k not in data:
+                    data[k] = self.sabor[k]
+
+        return data
 
     def __repr__(self):
         return f"<Producto {self.producto_id}: {self.nombre}>"

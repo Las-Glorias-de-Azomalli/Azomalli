@@ -272,3 +272,32 @@ def test_list_orders_filtering_and_security(client, db_session):
     # Control de acceso: Usuario 2 NO puede ver el pedido de Usuario 1
     res_forbidden = client.get(f'/api/orders/{ped1.pedido_id}', headers=h2)
     assert res_forbidden.status_code == 403
+
+    # Administrador puede ver TODOS los pedidos realizados por los clientes en GET /api/orders y su detalle
+    p_admin = Persona(nombre="Admin", primer_apellido="Pedidos", fecha_registro=datetime.date.today())
+    db_session.add(p_admin)
+    db_session.flush()
+    c_admin = Cuenta(
+        email="admin_orders@azomalli.com",
+        telefono="9210000099",
+        rol=RolDeUsuario.ADMINISTRADOR,
+        persona_id=p_admin.persona_id
+    )
+    c_admin.set_password("Admin123!")
+    db_session.add(c_admin)
+    db_session.commit()
+
+    token_admin, _ = authenticate_user("admin_orders@azomalli.com", "Admin123!")
+    h_admin = {"Authorization": f"Bearer {token_admin}"}
+
+    res_admin_all = client.get('/api/orders', headers=h_admin)
+    assert res_admin_all.status_code == 200
+    admin_orders = res_admin_all.get_json()["orders"]
+    admin_order_ids = {o["pedido_id"] for o in admin_orders}
+    assert ped1.pedido_id in admin_order_ids
+    assert ped2.pedido_id in admin_order_ids
+    assert ped3_user2.pedido_id in admin_order_ids
+
+    res_admin_detail = client.get(f'/api/orders/{ped1.pedido_id}', headers=h_admin)
+    assert res_admin_detail.status_code == 200
+    assert res_admin_detail.get_json()["pedido"]["pedido_id"] == ped1.pedido_id

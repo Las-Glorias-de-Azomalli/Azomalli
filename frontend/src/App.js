@@ -6,6 +6,9 @@ import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { OrdersPage } from './pages/OrdersPage';
 import { OrderDetailPage } from './pages/OrderDetailPage';
+import { AdminCatalogPage } from './pages/AdminCatalogPage';
+import { AdminProductCreatePage } from './pages/AdminProductCreatePage';
+import { AdminProductEditPage } from './pages/AdminProductEditPage';
 import { ProductCustomizationModal } from './components/ProductCustomizationModal';
 import { useCart } from './hooks/useCart';
 import { useToast } from './hooks/useToast';
@@ -168,7 +171,38 @@ function AppRouter() {
           />
         );
 
+      case '/admin':
+      case '/admin/productos':
+      case '/admin/catalogo':
+        return (
+          <AdminCatalogPage
+            onNavigate={navigateTo}
+            onShowToast={showToast}
+          />
+        );
+
+      case '/admin/productos/nuevo':
+      case '/admin/catalogo/nuevo':
+        return (
+          <AdminProductCreatePage
+            onNavigate={navigateTo}
+            onShowToast={showToast}
+          />
+        );
+
       default:
+        if (currentPath.startsWith('/admin/productos/editar/') || currentPath.startsWith('/admin/catalogo/editar/')) {
+          const parts = currentPath.split('/');
+          const editId = parts[parts.length - 1];
+          return (
+            <AdminProductEditPage
+              productId={editId}
+              onNavigate={navigateTo}
+              onShowToast={showToast}
+            />
+          );
+        }
+
         if (currentPath.startsWith('/pedidos/') || currentPath.startsWith('/orders/')) {
           if (!isAuthenticated) {
             return (

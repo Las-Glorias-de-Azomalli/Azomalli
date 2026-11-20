@@ -1,6 +1,10 @@
+import datetime
 import pytest
 from app.models.producto import Producto
-from app.models.enums import CategoriaProducto
+from app.models.persona import Persona
+from app.models.cuenta import Cuenta
+from app.models.enums import CategoriaProducto, RolDeUsuario
+from app.services import authenticate_user
 
 
 def test_get_docs_swagger(client):
@@ -82,3 +86,242 @@ def test_get_product_by_id_found_and_not_found(client, db_session):
     res_404 = client.get('/api/products/9999999')
     assert res_404.status_code == 404
 
+
+def test_create_product_success_and_validation(client, db_session):
+    """Verifica la creación exitosa de un producto y sus validaciones."""
+    # 1. Creación exitosa
+    payload = {
+        "nombre": "Concha de Vainilla Artesanal",
+        "descripcion": "Concha esponjosa tradicional mexicana.",
+        "precio_unitario": 28.50,
+        "categoria": "DULCE",
+        "imagen_url": "https://example.com/concha.jpg",
+        "es_personalizable": True,
+        "es_temporada": False,
+        "activo": True,
+        "sabor": {"opciones": ["Vainilla", "Chocolate"]},
+        "ingredientes": "Harina de trigo, leche, mantequilla, azúcar, levadura y vainilla.",
+        "peso": "90 g por pieza",
+        "unidad": "Pieza"
+    }
+    res = client.post('/api/products', json=payload)
+    assert res.status_code == 201
+    body = res.get_json()
+    assert body["success"] is True
+    prod = body["product"]
+    assert prod["nombre"] == "Concha de Vainilla Artesanal"
+    assert prod["precio_unitario"] == 28.50
+    assert prod["categoria"] == "DULCE"
+    assert prod["activo"] is True
+    assert prod["es_personalizable"] is True
+
+    # 2. Validación de campos obligatorios faltantes
+    res_no_nombre = client.post('/api/products', json={
+        "descripcion": "Sin nombre",
+        "precio_unitario": 20.0,
+        "categoria": "DULCE"
+    })
+    assert res_no_nombre.status_code == 400
+
+    res_no_price = client.post('/api/products', json={
+        "nombre": "Pan Sin Precio",
+        "descripcion": "Descripción válida",
+        "categoria": "SALADO"
+    })
+    assert res_no_price.status_code == 400
+
+    # 3. Validación de precio negativo o cero
+    res_bad_price = client.post('/api/products', json={
+        "nombre": "Pan Precio Negativo",
+        "descripcion": "Descripción válida",
+        "precio_unitario": -5.0,
+        "categoria": "DULCE"
+    })
+    assert res_bad_price.status_code == 400
+
+    # 4. Validación de categoría inválida
+    res_bad_cat = client.post('/api/products', json={
+        "nombre": "Pan Categoría Rara",
+        "descripcion": "Descripción válida",
+        "precio_unitario": 15.0,
+        "categoria": "INVALIDA"
+    })
+    assert res_bad_cat.status_code == 400
+
+
+def test_update_product_success_and_errors(client, db_session):
+    """Verifica actualización de producto existente."""
+    pan = Producto(
+        nombre="Baguette Rústica",
+        descripcion="Baguette crujiente",
+        precio_unitario=35.0,
+        es_personalizable=False,
+        activo=True,
+        categoria=CategoriaProducto.SALADO,
+        es_temporada=False
+    )
+    db_session.add(pan)
+    db_session.commit()
+
+    # 1. Actualización válida
+    update_data = {
+        "nombre": "Baguette Rústica de Masa Madre",
+        "precio_unitario": 42.0,
+        "es_temporada": True
+    }
+    res = client.put(f'/api/products/{pan.producto_id}', json=update_data)
+    assert res.status_code == 200
+    updated = res.get_json()["product"]
+    assert updated["nombre"] == "Baguette Rústica de Masa Madre"
+    assert updated["precio_unitario"] == 42.0
+    assert updated["es_temporada"] is True
+    assert updated["categoria"] == "SALADO"
+
+    # 2. Actualizar producto inexistente
+    res_404 = client.put('/api/products/999999', json={"nombre": "Fantasma"})
+    assert res_404.status_code == 404
+
+    # 3. Actualizar con nombre vacío (400)
+    res_bad = client.put(f'/api/products/{pan.producto_id}', json={"nombre": "   "})
+    assert res_bad.status_code == 400
+
+
+def test_archive_and_restore_product_lifecycle(client, db_session):
+    """
+    Verifica el ciclo de vida de archivado y reactivación de un producto:
+    1. Producto activo visible en catálogo público.
+    2. Al archivar, ya no aparece en catálogo público.
+    3. Aparece al filtrar con status=archived.
+    4. Al reactivar, vuelve a aparecer en catálogo público.
+    """
+    pan = Producto(
+        nombre="Panqué de Limón Temporal",
+        descripcion="Panqué glaseado con jugo de limón fresco",
+        precio_unitario=65.0,
+        es_personalizable=False,
+        activo=True,
+        categoria=CategoriaProducto.DULCE,
+        es_temporada=True
+    )
+    db_session.add(pan)
+    db_session.commit()
+
+    # 1. Visible en catálogo público inicial
+    res_init = client.get('/api/products')
+    assert any(p["producto_id"] == pan.producto_id for p in res_init.get_json()["products"])
+
+    # 2. Archivar el producto
+    res_archive = client.post(f'/api/products/{pan.producto_id}/archive')
+    assert res_archive.status_code == 200
+    assert res_archive.get_json()["product"]["activo"] is False
+
+    # 3. Ya no debe aparecer en el catálogo público activo
+    res_after_archive = client.get('/api/products')
+    assert not any(p["producto_id"] == pan.producto_id for p in res_after_archive.get_json()["products"])
+
+    # 4. Sí debe aparecer al filtrar por status=archived
+    res_archived_list = client.get('/api/products?status=archived')
+    assert any(p["producto_id"] == pan.producto_id for p in res_archived_list.get_json()["products"])
+
+    # 5. Reactivar el producto
+    res_restore = client.post(f'/api/products/{pan.producto_id}/restore')
+    assert res_restore.status_code == 200
+    assert res_restore.get_json()["product"]["activo"] is True
+
+    # 6. Vuelve a aparecer en catálogo público
+    res_final = client.get('/api/products')
+    assert any(p["producto_id"] == pan.producto_id for p in res_final.get_json()["products"])
+
+
+def test_search_and_filter_products(client, db_session):
+    """Verifica filtros combinados por búsqueda de texto y código."""
+    p1 = Producto(
+        nombre="Dona Glaseada Especial",
+        descripcion="Dona esponjosa con glaseado de vainilla",
+        precio_unitario=18.0,
+        es_personalizable=False,
+        activo=True,
+        categoria=CategoriaProducto.DULCE,
+        es_temporada=False
+    )
+    p2 = Producto(
+        nombre="Empanada de Mole",
+        descripcion="Empanada salada rellena de mole poblano artesanal",
+        precio_unitario=32.0,
+        es_personalizable=False,
+        activo=True,
+        categoria=CategoriaProducto.SALADO,
+        es_temporada=False
+    )
+    db_session.add_all([p1, p2])
+    db_session.commit()
+
+    # Buscar por palabra "Glaseada"
+    res_search = client.get('/api/products?search=Glaseada')
+    assert res_search.status_code == 200
+    items = res_search.get_json()["products"]
+    assert any(p["producto_id"] == p1.producto_id for p in items)
+    assert not any(p["producto_id"] == p2.producto_id for p in items)
+
+    # Buscar por código PAN-00X
+    code = f"PAN-{p2.producto_id:03d}"
+    res_code = client.get(f'/api/products?search={code}')
+    assert res_code.status_code == 200
+    items_code = res_code.get_json()["products"]
+    assert any(p["producto_id"] == p2.producto_id for p in items_code)
+
+
+def test_admin_role_authorization_for_product_crud(client, db_session):
+    """Verifica que un usuario con rol CLIENTE reciba 403 al intentar modificar el catálogo, mientras que ADMINISTRADOR tiene permiso."""
+    p_client = Persona(nombre="Cliente", primer_apellido="Normal", fecha_registro=datetime.date.today())
+    p_admin = Persona(nombre="Admin", primer_apellido="Azomalli", fecha_registro=datetime.date.today())
+    db_session.add_all([p_client, p_admin])
+    db_session.flush()
+
+    c_client = Cuenta(
+        email="cliente_crud@azomalli.com",
+        telefono="9211112222",
+        rol=RolDeUsuario.CLIENTE,
+        persona_id=p_client.persona_id
+    )
+    c_client.set_password("Cliente123!")
+
+    c_admin = Cuenta(
+        email="admin_crud@azomalli.com",
+        telefono="9213334444",
+        rol=RolDeUsuario.ADMINISTRADOR,
+        persona_id=p_admin.persona_id
+    )
+    c_admin.set_password("Admin123!")
+    db_session.add_all([c_client, c_admin])
+    db_session.commit()
+
+    client_token, _ = authenticate_user("cliente_crud@azomalli.com", "Cliente123!")
+    admin_token, _ = authenticate_user("admin_crud@azomalli.com", "Admin123!")
+
+    client_headers = {"Authorization": f"Bearer {client_token}"}
+    admin_headers = {"Authorization": f"Bearer {admin_token}"}
+
+    payload = {
+        "nombre": "Pan Exclusivo Admin",
+        "descripcion": "Creado por administrador autenticado",
+        "precio_unitario": 35.0,
+        "categoria": "DULCE"
+    }
+
+    # Cliente recibe 403
+    res_forbidden = client.post('/api/products', json=payload, headers=client_headers)
+    assert res_forbidden.status_code == 403
+
+    # Administrador recibe 201
+    res_allowed = client.post('/api/products', json=payload, headers=admin_headers)
+    assert res_allowed.status_code == 201
+    prod_id = res_allowed.get_json()["product"]["producto_id"]
+
+    # Cliente no puede archivar (403)
+    res_arch_forbidden = client.post(f'/api/products/{prod_id}/archive', headers=client_headers)
+    assert res_arch_forbidden.status_code == 403
+
+    # Administrador sí puede archivar (200)
+    res_arch_allowed = client.post(f'/api/products/{prod_id}/archive', headers=admin_headers)
+    assert res_arch_allowed.status_code == 200

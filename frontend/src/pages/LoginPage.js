@@ -37,8 +37,12 @@ export function LoginPage({ cartCount = 0, onOpenCart, onNavigate, onShowToast }
         const nombre = result?.cuenta?.nombre || 'Bienvenido';
         onShowToast(`¡Hola de nuevo, ${nombre}! Sesión iniciada con éxito.`, 'success');
       }
-      // Redirigir al inicio tras login exitoso
-      navigateTo('/');
+      // Redirigir al panel de administración si es usuario administrador, o al inicio si es cliente
+      if (result?.cuenta?.rol === 'ADMINISTRADOR') {
+        navigateTo('/admin/productos');
+      } else {
+        navigateTo('/');
+      }
     } catch (err) {
       setErrorMessage(err.message || 'Error al iniciar sesión. Verifica tus credenciales.');
     } finally {

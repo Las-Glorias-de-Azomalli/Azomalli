@@ -2,10 +2,26 @@
 
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
+from app.database import db
 from app.services import create_order, get_orders_by_user, get_order_by_id
+from app.models.cuenta import Cuenta
 from app.models.enums import RolDeUsuario
 
 orders_bp = Blueprint('orders', __name__)
+
+
+def _is_admin_user(current_cuenta_id, claims):
+    """Verifica si el usuario autenticado tiene rol ADMINISTRADOR en el token o en la base de datos."""
+    if claims and claims.get("rol") == RolDeUsuario.ADMINISTRADOR.value:
+        return True
+    try:
+        cuenta = db.session.get(Cuenta, int(current_cuenta_id))
+        if cuenta:
+            rol_str = cuenta.rol.value if hasattr(cuenta.rol, "value") else str(cuenta.rol)
+            return rol_str == RolDeUsuario.ADMINISTRADOR.value
+    except Exception:
+        pass
+    return False
 
 
 @orders_bp.route('', methods=['POST'])
@@ -108,7 +124,7 @@ def create():
 @jwt_required()
 def list_orders():
     """
-    Listar pedidos del usuario autenticado.
+    Listar pedidos del usuario autenticado (o todos los pedidos del sistema si es administrador).
     ---
     tags:
       - Pedidos
@@ -121,13 +137,15 @@ def list_orders():
         description: Filtro opcional por estado (PENDIENTE, ENTREGADO, CANCELADO, EN_CURSO)
     responses:
       200:
-        description: Lista de pedidos del usuario.
+        description: Lista de pedidos.
       401:
         description: No autorizado.
     """
     current_cuenta_id = get_jwt_identity()
+    claims = get_jwt()
+    is_admin = _is_admin_user(current_cuenta_id, claims)
     estado = request.args.get('estado')
-    orders = get_orders_by_user(current_cuenta_id, estado=estado)
+    orders = get_orders_by_user(current_cuenta_id, estado=estado, include_all=is_admin)
     return jsonify({"success": True, "orders": orders}), 200
 
 
@@ -151,7 +169,7 @@ def get_order(pedido_id):
     """
     current_cuenta_id = get_jwt_identity()
     claims = get_jwt()
-    is_admin = claims.get("rol") == RolDeUsuario.ADMINISTRADOR.value
+    is_admin = _is_admin_user(current_cuenta_id, claims)
 
     order = get_order_by_id(pedido_id)
     if not order:
@@ -182,7 +200,7 @@ def get_user_orders(user_id):
     """
     current_cuenta_id = get_jwt_identity()
     claims = get_jwt()
-    is_admin = claims.get("rol") == RolDeUsuario.ADMINISTRADOR.value
+    is_admin = _is_admin_user(current_cuenta_id, claims)
 
     if int(current_cuenta_id) != user_id and not is_admin:
         return jsonify({"error": "No tienes permiso para consultar estos pedidos."}), 403
